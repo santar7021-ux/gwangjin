@@ -1,0 +1,1805 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<script>
+(function(){
+  // Apps Script iframe viewport 강제 적용
+  var vp = document.querySelector('meta[name=viewport]');
+  if(!vp){ vp = document.createElement('meta'); vp.name='viewport'; document.head.appendChild(vp); }
+  vp.content = 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no';
+  // 화면 너비 강제 설정
+  document.documentElement.style.cssText = 'width:100%!important;max-width:100vw!important;overflow-x:hidden!important;';
+  document.addEventListener('DOMContentLoaded', function(){
+    document.body.style.cssText += ';width:100%!important;overflow-x:hidden!important;max-width:100vw!important;';
+    var app = document.querySelector('.app');
+    if(app){ app.style.cssText += ';width:100%!important;max-width:480px!important;margin:0 auto!important;'; }
+  });
+})();
+</script>
+
+<title>남양주 먹골배 광진농원 주문서</title>
+<style>
+/* ── RESET & BASE ── */
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html{width:100%!important;max-width:100vw!important;overflow-x:hidden!important;background:#C8B898;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Malgun Gothic","Apple SD Gothic Neo",sans-serif;-webkit-text-size-adjust:100%;}
+body{width:100%!important;max-width:100vw!important;min-height:100vh;background:#C8B898;color:#2A1A0A;font-size:16px;display:flex;flex-direction:column;align-items:center;margin:0!important;padding:0!important;overflow-x:hidden!important;-webkit-text-size-adjust:100%;}
+.app{width:100%!important;max-width:480px;min-height:100vh;background:#FAF8F4;box-shadow:0 0 40px rgba(0,0,0,.15);position:relative;margin:0 auto!important;overflow-x:hidden!important;}
+:root{
+  --nv:#3B2A1A;--nm:#4A3828;--nl:#6B5040;--ns:#9A7860;
+  --wh:#FFFFFF;--cr:#FAF8F4;--cs:#F0EBE3;
+  --gd:#6A9050;--gl:#88B068;--gp:#EEF5E8;
+  --tx:#2A1A0A;--ts:#5A4830;--tm:#9A8870;
+  --bd:#D8CEC0;
+}
+
+/* ── HERO ── */
+.hero{
+  position:relative;
+  width:100%;
+  height:260px;
+  overflow:hidden;
+  background:#2A1A0A;
+}
+
+
+/* 사진이 없을 때 SVG 배꽃 과수원 배경 */
+.hero-svg{position:absolute;inset:0;width:100%;height:100%}
+
+
+/* ── 사진 변경 버튼 ── */
+
+.hero-overlay{
+  position:absolute;inset:0;
+  pointer-events:none;
+  background:linear-gradient(
+    to bottom,
+    rgba(30,18,8,0.42) 0%,
+    rgba(40,25,10,0.25) 45%,
+    rgba(25,15,5,0.60) 100%
+  );
+}
+.hero-overlay2{
+  pointer-events:none;
+  position:absolute;inset:0;
+  background:linear-gradient(
+    to right,
+    rgba(25,15,5,0.30) 0%,
+    transparent 35%,
+    transparent 65%,
+    rgba(25,15,5,0.30) 100%
+  );
+}
+.hero-content{
+  position:absolute;inset:0;
+  display:flex;flex-direction:column;
+  align-items:flex-start;justify-content:flex-end;
+  padding:0 22px 28px;
+  pointer-events:none;
+}
+.hero-tag{display:none;}
+.hero-title{
+  font-family:'Gowun Batang',Georgia,serif;
+  color:#FFFFFF;
+  font-size:28px;
+  font-weight:400;
+  line-height:1.3;
+  letter-spacing:2px;
+  text-shadow:0 2px 18px rgba(0,0,0,0.55),0 1px 4px rgba(0,0,0,0.4);
+  margin-bottom:10px;
+}
+.hero-title em{
+  font-style:italic;
+  color:#E8C870;
+}
+.hero-divider{
+  width:48px;height:2px;
+  background:linear-gradient(90deg,rgba(106,144,80,0.9),rgba(136,176,104,0.5));
+  border-radius:2px;
+  margin-bottom:8px;
+}
+.hero-sub{
+  color:rgba(255,255,255,0.65);
+  font-size:12px;
+  letter-spacing:2.5px;
+  font-weight:400;
+}
+.hero-bottom-gold{
+  height:3px;
+  background:linear-gradient(90deg,transparent,#6A9050 25%,#88B068 50%,#6A9050 75%,transparent);
+}
+
+/* ── STEP NAV ── */
+.snav{
+  display:flex;
+  background:#2A3870;
+  border-bottom:1px solid rgba(255,255,255,0.07);
+  position:sticky;top:0;z-index:100;
+  width:100%;
+left:0;right:0;}
+.sb{
+  flex:1;padding:11px 2px 9px;
+  text-align:center;border:none;background:none;
+  cursor:pointer;position:relative;transition:all .2s;
+}
+.sb-c{
+  width:20px;height:20px;border-radius:50%;
+  background:rgba(255,255,255,0.08);
+  color:rgba(255,255,255,0.28);
+  font-size:10px;font-weight:700;line-height:20px;
+  text-align:center;margin:0 auto 4px;transition:all .2s;
+}
+.sb-t{font-size:10px;color:rgba(255,255,255,0.28);font-weight:500;letter-spacing:0.1px}
+.sb.act .sb-c{background:#6A9050;color:#fff}
+.sb.act .sb-t{color:#88B068}
+.sb.act::after{content:'';position:absolute;bottom:0;left:15%;right:15%;height:2px;background:#6A9050;border-radius:2px 2px 0 0}
+.sb.done .sb-c{background:rgba(106,144,80,0.22);color:rgba(106,144,80,0.9)}
+.sb.done .sb-t{color:rgba(106,144,80,0.7)}
+
+/* ── PAGES ── */
+.page{display:none;padding:14px}
+.page.act{display:block}
+
+/* ── SECTION LABEL ── */
+.slbl{display:flex;align-items:center;gap:8px;margin-bottom:10px;margin-top:2px}
+.sbar{width:3px;height:17px;background:#2A1A0A;border-radius:2px;flex-shrink:0}
+.st{font-size:14px;font-weight:700;color:#3B2A1A}
+.ss{font-size:11px;color:#4A5280;margin-left:1px}
+
+/* ── CARD ── */
+.card{background:#fff;border:1px solid #D0D5EE;border-radius:14px;overflow:hidden;margin-bottom:10px}
+.ci{padding:15px 16px}
+
+/* ── FIELDS ── */
+.f{margin-bottom:12px}
+.f:last-child{margin-bottom:0}
+.fl{display:flex;align-items:center;gap:5px;font-size:12px;font-weight:600;color:#4A5280;margin-bottom:6px}
+.req{width:5px;height:5px;border-radius:50%;background:#C03020;flex-shrink:0}
+.opt{font-size:11px;font-weight:400;color:#8A94C0}
+.divr{height:1px;background:#EDE5D8;margin:12px 0}
+.em{font-size:11px;color:#B02818;margin-top:4px;display:none}
+.f.err input,.f.err select,.f.err textarea{border-color:#E8A090!important}
+.f.err .em{display:block}
+
+/* ── INPUTS ── */
+input[type=text],input[type=tel],input[type=date],textarea{
+  width:100%;padding:12px 13px;
+  border:1px solid #D8CEC0;border-radius:10px;
+  font-size:16px;color:#2A1A0A;
+  background:#FAF8F4;
+  font-family:inherit;
+  outline:none;-webkit-appearance:none;appearance:none;
+  transition:border-color .15s,box-shadow .15s;
+  display:block;
+}
+input[type=text]:focus,input[type=tel]:focus,input[type=date]:focus,textarea:focus{
+  border-color:#1A2456;box-shadow:0 0 0 3px rgba(26,36,86,0.1);background:#fff
+}
+input::placeholder,textarea::placeholder{color:#B0B8D8;font-size:14px}
+textarea{min-height:72px;resize:none;line-height:1.6;font-size:14px}
+
+/* ── 주소 ── */
+.addr-btn{
+  width:100%;padding:12px 13px;
+  background:#F0EBE3;border:1px solid #D8CEC0;border-radius:10px;
+  font-size:14px;color:#0D1333;
+  display:flex;align-items:center;gap:8px;
+  cursor:pointer;transition:all .15s;text-align:left;
+  font-family:inherit;
+}
+.addr-btn:hover{border-color:#6A9050}
+.addr-btn.empty{color:#B0B8D8}
+.addr-btn-icon{font-size:15px;flex-shrink:0}
+.addr-btn-txt{flex:1;font-size:14px}
+.addr-btn-arr{font-size:12px;color:#8A94C0;flex-shrink:0}
+.addr-panel{
+  background:#fff;border:1px solid #D8CEC0;
+  border-radius:12px;margin-top:7px;
+  overflow:hidden;display:none;
+}
+.addr-panel.open{display:block}
+.addr-step{padding:12px 13px;border-bottom:1px solid #F0EBE3}
+.addr-step:last-child{border:none}
+.addr-step-lbl{
+  font-size:11px;font-weight:700;color:#4A5280;
+  letter-spacing:0.5px;margin-bottom:8px;
+}
+.addr-chips{display:flex;flex-wrap:wrap;gap:5px}
+.ach{
+  padding:6px 11px;
+  border:1px solid #D8CEC0;border-radius:18px;
+  font-size:13px;color:#5A4830;background:#FAF8F4;
+  cursor:pointer;font-family:inherit;
+  transition:all .12s;white-space:nowrap;
+}
+.ach:hover{border-color:#6A9050;color:#3B2A1A}
+.ach.sel{background:#2A1A0A;color:#fff;border-color:#1A2456}
+.addr-detail{margin-top:8px}
+
+/* ── 받는 사람 블록 ── */
+.rb{background:#fff;border:1px solid #D0D5EE;border-radius:14px;overflow:hidden;margin-bottom:8px}
+.rhd{
+  background:#F0EBE3;padding:10px 14px;
+  display:flex;align-items:center;justify-content:space-between;
+  border-bottom:1px solid #D0D5EE;
+}
+.rhd-l{display:flex;align-items:center;gap:8px}
+.rbadge{
+  width:22px;height:22px;border-radius:50%;
+  background:#2A1A0A;color:#fff;
+  font-size:11px;font-weight:700;
+  display:flex;align-items:center;justify-content:center;
+}
+.rtit{font-size:13px;font-weight:700;color:#1A2456}
+.rbody{padding:13px 14px}
+.bdel{
+  border:1px solid rgba(255,255,255,0.45);color:#fff;background:rgba(255,255,255,0.12);
+  border-radius:7px;padding:4px 10px;
+  font-size:11px;font-weight:600;cursor:pointer;font-family:inherit;
+}
+.bdel:hover{background:rgba(255,255,255,0.25)}
+.badd{
+  width:100%;padding:12px;
+  border:1.5px dashed #6A9050;border-radius:12px;
+  background:transparent;color:#3B5A28;
+  font-size:14px;font-weight:600;cursor:pointer;
+  font-family:inherit;
+  display:flex;align-items:center;justify-content:center;gap:6px;
+  transition:all .18s;
+}
+.badd:hover{background:#EEF5E8;border-color:#3B2A1A}
+
+/* ── 상품 그리드 ── */
+.prod-select{
+  width:100%;padding:11px 13px;
+  border:1px solid #D8CEC0;border-radius:10px;
+  font-size:14px;color:#2A1A0A;
+  background:#FAF8F4;
+  font-family:inherit;
+  outline:none;-webkit-appearance:none;appearance:none;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M.5.5l4.5 5 4.5-5' stroke='%236A9050' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 12px center;
+  padding-right:32px;cursor:pointer;
+  transition:border-color .15s;
+}
+.prod-select:focus{border-color:#6A9050;box-shadow:0 0 0 3px rgba(106,144,80,0.12);background:#fff;}
+.qty-row{display:flex;align-items:center;gap:10px;margin-top:9px;}
+.qty-label{font-size:12px;font-weight:600;color:#5A4830;white-space:nowrap;}
+.qty-ctrl{display:flex;align-items:center;border:1px solid #D8CEC0;border-radius:10px;overflow:hidden;background:#FAF8F4;}
+.qty-btn{width:36px;height:38px;border:none;background:none;font-size:20px;color:#6A9050;cursor:pointer;font-family:inherit;font-weight:700;transition:background .15s;display:flex;align-items:center;justify-content:center;}
+.qty-btn:hover{background:#EEF5E8;}
+.qty-input{width:48px;height:38px;border:none;border-left:1px solid #D8CEC0;border-right:1px solid #D8CEC0;text-align:center;font-size:15px;font-weight:700;color:#2A1A0A;background:#fff;font-family:inherit;outline:none;}
+.cuf{display:none;margin-top:8px;}
+.cuf.show{display:block;}
+.qty-modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:9999;align-items:center;justify-content:center;padding:24px;}
+.qty-modal-overlay.show{display:flex;}
+.qty-modal{background:#fff;border-radius:18px;padding:28px 22px 22px;max-width:min(320px,calc(100vw - 32px));width:100%;text-align:center;box-shadow:0 8px 32px rgba(0,0,0,0.18);}
+.qty-modal-icon{font-size:36px;margin-bottom:12px;}
+.qty-modal-title{font-size:16px;font-weight:700;color:#3B2A1A;margin-bottom:10px;line-height:1.5;}
+.qty-modal-desc{font-size:13px;color:#5A4830;line-height:1.8;margin-bottom:20px;}
+.qty-modal-btns{display:flex;gap:8px;}
+.qty-modal-btn{flex:1;padding:13px;border:none;border-radius:11px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;transition:all .15s;}
+.qty-modal-btn.yes{background:#3B2A1A;color:#fff;}
+.qty-modal-btn.yes:hover{background:#4A3828;}
+.qty-modal-btn.no{background:#EEF5E8;color:#3B5A28;border:1.5px solid #6A9050;}
+.qty-modal-btn.no:hover{background:#DDF0CC;}
+
+/* ── 날짜 칩 ── */
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.chip{
+  padding:7px 13px;
+  border:1px solid #D8CEC0;border-radius:20px;
+  font-size:13px;font-weight:600;color:#5A4830;background:#fff;
+  cursor:pointer;font-family:inherit;transition:all .15s;
+}
+.chip:hover,.chip.on{background:#2A1A0A;color:#fff;border-color:#1A2456}
+
+/* ── 버튼 ── */
+.navr{display:flex;gap:8px;margin-top:6px}
+.bbk{
+  flex:0 0 72px;padding:14px;
+  border:1px solid #D0D5EE;border-radius:12px;
+  background:#fff;color:#4A5280;
+  font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;
+  transition:all .15s;
+}
+.bbk:hover{background:#F0EBE3}
+.bfwd{
+  flex:1;padding:14px;border:none;border-radius:12px;
+  background:#2A1A0A;color:#fff;
+  font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;
+  letter-spacing:0.2px;transition:all .18s;
+}
+.bfwd:hover{background:#4A3828}
+.bfwd:active{transform:scale(0.98)}
+.bfwd.gold{background:#6A9050;color:#fff}
+.bfwd.gold:hover{background:#88B068}
+
+/* ── 요약 ── */
+.sumblk{background:#fff;border:1px solid #D8CEC0;border-radius:14px;overflow:hidden;margin-bottom:8px}
+.sumhd{background:#ECEEF8;padding:10px 15px;font-size:12px;font-weight:700;color:#1A2456;border-bottom:1px solid #D0D5EE;letter-spacing:0.5px}
+.sumr{display:flex;padding:9px 15px;border-bottom:1px solid #F5F0E8;font-size:13px}
+.sumr:last-child{border:none}
+.sumk{color:#8A94C0;min-width:76px;flex-shrink:0;font-size:12px;padding-top:1px}
+.sumv{color:#0D1333;font-weight:500;flex:1;word-break:keep-all}
+
+.notice{
+  background:#EEF5E8;border:1px solid rgba(106,144,80,0.3);
+  border-radius:11px;padding:12px 14px;
+  font-size:13px;color:#3A4A28;line-height:1.7;margin-bottom:10px;
+}
+.notice b{color:#2A3818}
+
+/* ── 완료 ── */
+.done-wrap{text-align:center;padding:40px 20px 30px}
+.done-ico{font-size:52px;margin-bottom:14px}
+.done-wrap h2{font-size:20px;font-weight:700;color:#3B2A1A;margin-bottom:10px;font-family:'Gowun Batang',Georgia,serif;letter-spacing:1px;}
+.done-wrap p{font-size:14px;color:#5A4830;line-height:1.9;margin-bottom:18px;}
+.bnew{
+  padding:13px 32px;border:none;border-radius:12px;
+  background:#2A1A0A;color:#fff;
+  font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;
+}
+
+/* ── 주문 블록 ── */
+.order-block{
+  background:#fff;
+  border:1px solid #D8CEC0;
+  border-radius:16px;
+  overflow:hidden;
+  margin-bottom:12px;
+}
+.order-hd{
+  background:linear-gradient(90deg,#3B2A1A,#5A4030);
+  padding:11px 15px;
+  display:flex;align-items:center;justify-content:space-between;
+  border-bottom:2px solid rgba(106,144,80,0.4);
+}
+.order-hd-left{display:flex;align-items:center;gap:9px;}
+.order-badge{
+  width:26px;height:26px;border-radius:50%;
+  background:#6A9050;color:#fff;
+  font-size:12px;font-weight:800;
+  display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;
+}
+.order-title{font-size:14px;font-weight:700;color:#fff;letter-spacing:0.2px;}
+.order-body{padding:14px 15px;}
+.order-section-label{
+  font-size:12px;font-weight:700;color:#3B2A1A;
+  margin-bottom:10px;margin-top:4px;
+  display:flex;align-items:center;gap:5px;
+}
+.order-section-label .arrow-icon{color:#6A9050;font-size:10px;}
+.order-divider{
+  display:flex;align-items:center;
+  margin:14px 0;gap:10px;
+}
+.order-divider::before,.order-divider::after{
+  content:'';flex:1;height:1px;background:#D0D5EE;
+}
+.order-divider span{
+  font-size:11px;font-weight:600;color:#6A9050;
+  white-space:nowrap;padding:3px 8px;
+  background:#EEF5E8;border-radius:10px;
+}
+.sum-section{
+  font-size:11px;font-weight:700;color:#6A9050;
+  padding:5px 15px 2px;letter-spacing:0.4px;
+  border-top:1px solid #ECEEF8;margin-top:2px;
+}
+.sum-section:first-of-type{border-top:none;}
+
+/* ── 받는 사람 서브 블록 ── */
+.rcpt-block{
+  background:#FAF7F4;
+  border:1px solid #D8CEC0;
+  border-radius:12px;
+  overflow:hidden;
+  margin-bottom:8px;
+}
+.rcpt-hd{
+  background:#F0EBE3;
+  padding:8px 12px;
+  display:flex;align-items:center;justify-content:space-between;
+  border-bottom:1px solid #D8CEC0;
+}
+.rcpt-hd-left{display:flex;align-items:center;gap:7px;}
+.rcpt-badge{
+  width:20px;height:20px;border-radius:50%;
+  background:#9A7860;color:#fff;
+  font-size:10px;font-weight:700;
+  display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;
+}
+.rcpt-title{font-size:12px;font-weight:600;color:#3B2A1A;}
+.rcpt-body{padding:11px 12px;}
+.badd-rcpt{
+  width:100%;padding:9px 12px;
+  border:1.5px dashed #6A9050;border-radius:10px;
+  background:transparent;color:#3B5A28;
+  font-size:13px;font-weight:600;cursor:pointer;
+  font-family:inherit;
+  display:flex;align-items:center;justify-content:center;gap:5px;
+  margin-top:6px;
+  transition:all .15s;
+}
+.badd-rcpt:hover{background:#EEF5E8;border-color:#3B2A1A;}
+.bdel-sm{
+  border:1px solid rgba(107,127,186,0.5);color:#4A5280;background:none;
+  border-radius:5px;padding:2px 7px;
+  font-size:10px;font-weight:600;cursor:pointer;font-family:inherit;
+}
+.bdel-sm:hover{background:#F0EBE3;}
+
+/* ── 가게 정보 바 ── */
+.info-bar{
+  background:#3B2A1A;
+  padding:10px 16px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  border-bottom:1px solid rgba(106,144,80,0.3);
+}
+.info-bar-text{
+  color:rgba(255,255,255,0.75);
+  font-size:13px;
+  line-height:1.5;
+  flex:1;
+}
+.info-bar-text span{
+  color:rgba(255,255,255,0.45);
+  font-size:11px;
+  margin-right:4px;
+}
+.copy-btn{
+  display:flex;align-items:center;gap:4px;
+  background:rgba(106,144,80,0.22);
+  border:1px solid rgba(106,144,80,0.5);
+  color:#88B068;
+  font-size:11px;font-weight:600;
+  padding:5px 10px;border-radius:8px;
+  cursor:pointer;font-family:inherit;
+  white-space:nowrap;flex-shrink:0;
+  transition:all .18s;
+}
+.copy-btn:hover{background:rgba(106,144,80,0.38);border-color:#88B068;}
+.copy-btn.copied{background:rgba(106,144,80,0.45);color:#fff;border-color:#6A9050;}
+.copy-icon{font-size:12px;}
+
+.done-farm{
+  font-family:'Gowun Batang',Georgia,serif;
+  font-size:20px;
+  font-weight:400;
+  color:#6A9050;
+  letter-spacing:4px;
+  margin-bottom:28px;
+  margin-top:-8px;
+}
+
+/* ── 인트로 페이지 ── */
+.intro-overlay{
+  position:fixed;
+  top:0;left:50%;transform:translateX(-50%);
+  width:100%;max-width:480px;
+  height:100%;z-index:9000;
+  background:#FAF8F4;
+  display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  padding:0;
+  transition:opacity .5s ease, visibility .5s ease;
+}
+.intro-overlay.hide{
+  opacity:0;visibility:hidden;pointer-events:none;
+}
+.intro-hero{
+  position:relative;width:100%;height:260px;overflow:hidden;flex-shrink:0;
+}
+.intro-hero-svg{position:absolute;inset:0;width:100%;height:100%;}
+.intro-hero-ov{
+  position:absolute;inset:0;pointer-events:none;
+  background:linear-gradient(to bottom,rgba(20,10,3,.38) 0%,rgba(30,18,8,.18) 45%,rgba(10,6,2,.72) 100%);
+}
+.intro-hero-content{
+  position:absolute;inset:0;
+  display:flex;flex-direction:column;
+  align-items:center;justify-content:flex-end;
+  padding:0 24px 28px;pointer-events:none;text-align:center;
+}
+.intro-farm-name{
+  font-family:'Gowun Batang',Georgia,serif;
+  color:#fff;font-size:26px;font-weight:400;
+  letter-spacing:2px;
+  text-shadow:0 2px 16px rgba(0,0,0,.55);
+  margin-bottom:6px;
+}
+.intro-farm-sub{
+  color:rgba(255,255,255,.6);font-size:12px;letter-spacing:1.5px;
+}
+.intro-gold-bar{height:3px;background:linear-gradient(90deg,transparent,#C8973A 25%,#E8B55A 50%,#C8973A 75%,transparent);width:100%;flex-shrink:0;}
+.intro-body{
+  flex:1;width:100%;max-width:min(420px,calc(100vw - 32px));
+  padding:28px 22px 32px;
+  display:flex;flex-direction:column;
+  align-items:center;
+  overflow-y:auto;
+}
+.intro-greeting{
+  font-size:15px;font-weight:700;color:#3B2A1A;
+  text-align:center;line-height:1.65;
+  margin-bottom:6px;
+}
+.intro-desc{
+  font-size:13px;color:#5A4830;
+  text-align:center;line-height:1.75;
+  margin-bottom:28px;
+}
+.intro-btn-wrap{
+  width:100%;display:flex;flex-direction:column;gap:12px;
+}
+.intro-btn{
+  width:100%;padding:18px 16px;
+  border-radius:14px;cursor:pointer;
+  font-family:inherit;transition:all .18s;
+  display:flex;align-items:center;gap:14px;
+  text-align:left;border:none;
+}
+.intro-btn-small{
+  background:#3B2A1A;color:#fff;
+}
+.intro-btn-small:hover{background:#4A3828;transform:translateY(-1px);box-shadow:0 4px 16px rgba(59,42,26,.28);}
+.intro-btn-small:active{transform:scale(.98);}
+.intro-btn-large{
+  background:#fff;color:#3B5A28;
+  border:2px solid #6A9050;
+}
+.intro-btn-large:hover{background:#EEF5E8;transform:translateY(-1px);box-shadow:0 4px 16px rgba(106,144,80,.18);}
+.intro-btn-large:active{transform:scale(.98);}
+.intro-btn-icon{
+  width:44px;height:44px;border-radius:12px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:22px;flex-shrink:0;
+}
+.intro-btn-small .intro-btn-icon{background:rgba(255,255,255,.12);}
+.intro-btn-large .intro-btn-icon{background:#EEF5E8;}
+.intro-btn-text{}
+.intro-btn-title{font-size:15px;font-weight:700;margin-bottom:2px;}
+.intro-btn-sub{font-size:12px;opacity:.72;}
+.intro-btn-small .intro-btn-sub{color:rgba(255,255,255,.7);}
+
+/* ── 대량주문 안내 팝업 ── */
+.bulk-modal-overlay{
+  display:none;position:fixed;inset:0;
+  background:rgba(0,0,0,.55);z-index:9500;
+  align-items:center;justify-content:center;padding:24px;
+}
+.bulk-modal-overlay.show{display:flex;}
+.bulk-modal{
+  background:#fff;border-radius:18px;
+  padding:28px 22px 22px;max-width:min(320px,calc(100vw - 32px));width:100%;
+  text-align:center;box-shadow:0 8px 32px rgba(0,0,0,.18);
+}
+.bulk-modal-icon{font-size:36px;margin-bottom:12px;}
+.bulk-modal-title{font-size:16px;font-weight:800;color:#3B2A1A;margin-bottom:12px;line-height:1.4;}
+.bulk-modal-desc{font-size:13px;color:#5A4830;line-height:1.8;margin-bottom:16px;}
+.bulk-modal-email{
+  background:#EEF5E8;border:1px solid #6A9050;
+  border-radius:10px;padding:11px 14px;
+  font-size:14px;font-weight:700;color:#3B5A28;
+  margin-bottom:18px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;gap:6px;
+  transition:background .15s;
+}
+.bulk-modal-email:hover{background:#DDF0CC;}
+.bulk-modal-btn{
+  width:100%;padding:13px;border:none;border-radius:11px;
+  background:#3B2A1A;color:#fff;
+  font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;
+}
+.bulk-modal-btn:hover{background:#4A3828;}
+.bulk-copy-msg{font-size:11px;color:#6A9050;margin-top:6px;height:16px;transition:opacity .3s;}
+
+@media (max-width: 480px) {
+  html, body { background: #FAF8F4 !important; }
+  .app { box-shadow: none !important; }
+}
+
+
+* { box-sizing: border-box !important; }
+html, body {
+  width: 100% !important;
+  max-width: 100vw !important;
+  overflow-x: hidden !important;
+  -webkit-text-size-adjust: 100% !important;
+}
+.app {
+  width: 100% !important;
+  max-width: 480px !important;
+  margin: 0 auto !important;
+  overflow-x: hidden !important;
+}
+img, svg, video { max-width: 100% !important; }
+input, select, textarea, button {
+  max-width: 100% !important;
+  -webkit-appearance: none !important;
+}
+
+/* ── Apps Script 모바일 강제 적용 ── */
+html, body {
+  width: 100% !important;
+  max-width: 100vw !important;
+  overflow-x: hidden !important;
+}
+* { box-sizing: border-box; }
+.app {
+  width: 100% !important;
+  max-width: 480px !important;
+  overflow-x: hidden !important;
+}
+</style>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&display=swap" rel="stylesheet">
+</head>
+<body>
+<div class="app">
+
+<!-- ── 인트로 페이지 ── -->
+<div class="intro-overlay" id="introOverlay">
+  <div class="intro-hero">
+    <svg class="hero-svg" viewBox="0 0 390 240" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="#8AAEC8"/>
+        <stop offset="40%" stop-color="#A8C8DC"/>
+        <stop offset="100%" stop-color="#C8D8E4"/>
+      </linearGradient>
+      <linearGradient id="hill1" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="#7A9B6A"/>
+        <stop offset="100%" stop-color="#5A7A4A"/>
+      </linearGradient>
+      <linearGradient id="hill2" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="#6A8B5A"/>
+        <stop offset="100%" stop-color="#4A6A3A"/>
+      </linearGradient>
+      <linearGradient id="ground" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="#7A9A5A"/>
+        <stop offset="100%" stop-color="#4A6A30"/>
+      </linearGradient>
+      <filter id="blur1"><feGaussianBlur stdDeviation="1.2"/></filter>
+      <filter id="blur2"><feGaussianBlur stdDeviation="0.6"/></filter>
+    </defs>
+
+    <!-- 하늘 -->
+    <rect width="390" height="240" fill="url(#sky)"/>
+
+    <!-- 구름 -->
+    <g opacity=".28" filter="url(#blur1)">
+      <ellipse cx="80" cy="38" rx="38" ry="14" fill="white"/>
+      <ellipse cx="105" cy="32" rx="28" ry="12" fill="white"/>
+      <ellipse cx="60" cy="34" rx="22" ry="10" fill="white"/>
+      <ellipse cx="290" cy="28" rx="32" ry="11" fill="white"/>
+      <ellipse cx="315" cy="23" rx="22" ry="9" fill="white"/>
+      <ellipse cx="268" cy="25" rx="18" ry="8" fill="white"/>
+    </g>
+
+    <!-- 먼 산 1 -->
+    <path d="M0,130 Q30,98 65,108 Q95,88 130,100 Q160,78 195,90 Q225,72 262,84 Q292,65 328,78 Q355,68 390,80 L390,240 L0,240Z" fill="url(#hill1)" opacity=".45"/>
+    <!-- 먼 산 2 -->
+    <path d="M0,148 Q35,122 72,132 Q105,112 142,124 Q172,106 208,118 Q238,100 275,112 Q305,96 342,108 Q365,100 390,110 L390,240 L0,240Z" fill="url(#hill2)" opacity=".38"/>
+
+    <!-- 풀밭 -->
+    <path d="M0,192 Q50,178 110,184 Q170,176 230,182 Q290,175 350,181 Q372,178 390,184 L390,240 L0,240Z" fill="url(#ground)" opacity=".52"/>
+    <path d="M0,210 Q60,200 130,205 Q200,198 270,204 Q330,198 390,204 L390,240 L0,240Z" fill="#5A7A3A" opacity=".35"/>
+
+    <!-- 중경 나무 행렬 (격자형) -->
+    <g opacity=".48" stroke="#3A2010" fill="none">
+      <g stroke-width="1.6">
+        <line x1="15" y1="195" x2="15" y2="158"/><line x1="15" y1="168" x2="8" y2="158"/><line x1="15" y1="168" x2="22" y2="158"/>
+        <line x1="52" y1="195" x2="52" y2="156"/><line x1="52" y1="166" x2="44" y2="156"/><line x1="52" y1="166" x2="60" y2="156"/>
+        <line x1="89" y1="195" x2="89" y2="158"/><line x1="89" y1="168" x2="81" y2="158"/><line x1="89" y1="168" x2="97" y2="158"/>
+        <line x1="126" y1="195" x2="126" y2="156"/><line x1="126" y1="166" x2="118" y2="156"/><line x1="126" y1="166" x2="134" y2="156"/>
+        <line x1="163" y1="195" x2="163" y2="158"/><line x1="163" y1="168" x2="155" y2="158"/><line x1="163" y1="168" x2="171" y2="158"/>
+        <line x1="200" y1="195" x2="200" y2="156"/><line x1="200" y1="166" x2="192" y2="156"/><line x1="200" y1="166" x2="208" y2="156"/>
+        <line x1="237" y1="195" x2="237" y2="158"/><line x1="237" y1="168" x2="229" y2="158"/><line x1="237" y1="168" x2="245" y2="158"/>
+        <line x1="274" y1="195" x2="274" y2="156"/><line x1="274" y1="166" x2="266" y2="156"/><line x1="274" y1="166" x2="282" y2="156"/>
+        <line x1="311" y1="195" x2="311" y2="158"/><line x1="311" y1="168" x2="303" y2="158"/><line x1="311" y1="168" x2="319" y2="158"/>
+        <line x1="348" y1="195" x2="348" y2="156"/><line x1="348" y1="166" x2="340" y2="156"/><line x1="348" y1="166" x2="356" y2="156"/>
+        <line x1="385" y1="195" x2="385" y2="158"/><line x1="385" y1="168" x2="377" y2="158"/><line x1="385" y1="168" x2="393" y2="158"/>
+      </g>
+    </g>
+    <!-- 중경 배꽃 -->
+    <g opacity=".55">
+      <g transform="translate(15,157)"><circle r="5.5" fill="white"/><circle r="4.5" cx="6" cy="-2" fill="white"/><circle r="4.5" cx="-5" cy="-3" fill="white"/><circle r="3.5" cx="1" cy="6" fill="white"/><circle r="4" cx="-2" cy="-7" fill="white"/></g>
+      <g transform="translate(52,155)"><circle r="6" fill="white"/><circle r="4.5" cx="7" cy="-2" fill="white"/><circle r="5" cx="-5" cy="-2" fill="white"/><circle r="4" cx="0" cy="7" fill="white"/></g>
+      <g transform="translate(89,157)"><circle r="5.5" fill="white"/><circle r="4" cx="6" cy="-2" fill="white"/><circle r="5" cx="-5" cy="-3" fill="white"/><circle r="3.5" cx="1" cy="6" fill="white"/></g>
+      <g transform="translate(126,155)"><circle r="6" fill="white"/><circle r="5" cx="6" cy="-2" fill="white"/><circle r="4.5" cx="-6" cy="-2" fill="white"/><circle r="4" cx="0" cy="7" fill="white"/></g>
+      <g transform="translate(163,157)"><circle r="5.5" fill="white"/><circle r="4.5" cx="6" cy="-2" fill="white"/><circle r="4.5" cx="-5" cy="-3" fill="white"/></g>
+      <g transform="translate(200,155)"><circle r="6" fill="white"/><circle r="5" cx="7" cy="-2" fill="white"/><circle r="4.5" cx="-5" cy="-2" fill="white"/><circle r="4" cx="0" cy="7" fill="white"/></g>
+      <g transform="translate(237,157)"><circle r="5.5" fill="white"/><circle r="4" cx="6" cy="-2" fill="white"/><circle r="5" cx="-5" cy="-3" fill="white"/></g>
+      <g transform="translate(274,155)"><circle r="6" fill="white"/><circle r="4.5" cx="6" cy="-2" fill="white"/><circle r="5" cx="-6" cy="-2" fill="white"/><circle r="4" cx="0" cy="7" fill="white"/></g>
+      <g transform="translate(311,157)"><circle r="5.5" fill="white"/><circle r="4.5" cx="6" cy="-2" fill="white"/><circle r="4.5" cx="-5" cy="-3" fill="white"/></g>
+      <g transform="translate(348,155)"><circle r="6" fill="white"/><circle r="5" cx="6" cy="-2" fill="white"/><circle r="4.5" cx="-5" cy="-2" fill="white"/><circle r="3.5" cx="0" cy="7" fill="white"/></g>
+    </g>
+
+    <!-- 전경 왼쪽 굵은 가지 -->
+    <g opacity=".94">
+      <path d="M-8,240 Q2,208 16,178 Q24,152 12,120" stroke="#2A1508" stroke-width="5" fill="none" stroke-linecap="round"/>
+      <path d="M12,120 Q18,96 6,68 Q0,48 -4,28" stroke="#2A1508" stroke-width="3" fill="none" stroke-linecap="round"/>
+      <path d="M12,120 Q30,102 46,82" stroke="#2A1508" stroke-width="2.6" fill="none" stroke-linecap="round"/>
+      <path d="M16,178 Q36,164 54,150" stroke="#2A1508" stroke-width="2.2" fill="none" stroke-linecap="round"/>
+      <path d="M16,178 Q0,162 -8,146" stroke="#2A1508" stroke-width="2" fill="none" stroke-linecap="round"/>
+      <path d="M6,68 Q-4,50 -10,30" stroke="#2A1508" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+      <path d="M6,68 Q18,52 22,34" stroke="#2A1508" stroke-width="1.6" fill="none" stroke-linecap="round"/>
+      <path d="M46,82 Q58,66 60,48" stroke="#2A1508" stroke-width="1.6" fill="none" stroke-linecap="round"/>
+      <path d="M46,82 Q34,66 30,50" stroke="#2A1508" stroke-width="1.4" fill="none" stroke-linecap="round"/>
+      <path d="M54,150 Q68,138 72,122" stroke="#2A1508" stroke-width="1.6" fill="none" stroke-linecap="round"/>
+      <path d="M54,150 Q56,166 60,180" stroke="#2A1508" stroke-width="1.4" fill="none" stroke-linecap="round"/>
+      <path d="M-4,28 Q-10,14 -14,2" stroke="#2A1508" stroke-width="1.4" fill="none" stroke-linecap="round"/>
+      <path d="M-4,28 Q8,16 12,4" stroke="#2A1508" stroke-width="1.3" fill="none" stroke-linecap="round"/>
+    </g>
+    <!-- 전경 왼쪽 꽃 - 크고 풍성하게 -->
+    <g opacity=".97">
+      <!-- 상단 꽃 뭉치들 -->
+      <g transform="translate(-4,27)">
+        <circle r="7" fill="white"/><circle r="5.5" cx="-8" cy="-3" fill="white"/><circle r="6" cx="7" cy="-4" fill="white"/>
+        <circle r="5" cx="0" cy="-10" fill="white"/><circle r="4.5" cx="-5" cy="7" fill="white"/><circle r="5" cx="7" cy="5" fill="white"/>
+        <circle r="4" cx="-10" cy="3" fill="white"/><circle r="4.5" cx="12" cy="-1" fill="white"/>
+        <circle cx="0" cy="0" r="1.4" fill="#C8E060" opacity=".95"/><circle cx="-8" cy="-3" r="1.2" fill="#C8E060" opacity=".9"/>
+        <circle cx="7" cy="-4" r="1.3" fill="#C8E060" opacity=".9"/>
+      </g>
+      <g transform="translate(22,32)">
+        <circle r="6.5" fill="white"/><circle r="5" cx="-7" cy="-3" fill="white"/><circle r="5.5" cx="6" cy="-4" fill="white"/>
+        <circle r="4.5" cx="1" cy="-9" fill="white"/><circle r="4.5" cx="-4" cy="7" fill="white"/>
+        <circle cx="0" cy="0" r="1.3" fill="#C8E060" opacity=".9"/>
+      </g>
+      <g transform="translate(-10,25)">
+        <circle r="5.5" fill="white"/><circle r="4.5" cx="-6" cy="-3" fill="white"/><circle r="5" cx="5" cy="-3" fill="white"/>
+        <circle r="4" cx="0" cy="-8" fill="white"/><circle cx="0" cy="0" r="1.2" fill="#C8E060" opacity=".9"/>
+      </g>
+      <g transform="translate(12,3)">
+        <circle r="5" fill="white"/><circle r="4" cx="-5" cy="-2" fill="white"/><circle r="4.5" cx="5" cy="-3" fill="white"/>
+        <circle cx="0" cy="0" r="1.1" fill="#C8E060" opacity=".88"/>
+      </g>
+      <!-- 중간 가지 꽃들 -->
+      <g transform="translate(60,47)">
+        <circle r="7" fill="white"/><circle r="5.5" cx="-8" cy="-3" fill="white"/><circle r="6" cx="7" cy="-4" fill="white"/>
+        <circle r="5" cx="0" cy="-10" fill="white"/><circle r="4.5" cx="-4" cy="7" fill="white"/><circle r="5.5" cx="8" cy="4" fill="white"/>
+        <circle r="4" cx="13" cy="-2" fill="white"/>
+        <circle cx="0" cy="0" r="1.4" fill="#C8E060" opacity=".95"/><circle cx="-8" cy="-3" r="1.1" fill="#C8E060" opacity=".9"/>
+      </g>
+      <g transform="translate(30,50)">
+        <circle r="6" fill="white"/><circle r="4.5" cx="-6" cy="-2" fill="white"/><circle r="5" cx="5" cy="-3" fill="white"/>
+        <circle r="4" cx="1" cy="-8" fill="white"/><circle cx="0" cy="0" r="1.2" fill="#C8E060" opacity=".9"/>
+      </g>
+      <g transform="translate(72,121)">
+        <circle r="6.5" fill="white"/><circle r="5" cx="-7" cy="-2" fill="white"/><circle r="5.5" cx="6" cy="-3" fill="white"/>
+        <circle r="4.5" cx="0" cy="-9" fill="white"/><circle r="4.5" cx="-4" cy="6" fill="white"/>
+        <circle cx="0" cy="0" r="1.3" fill="#C8E060" opacity=".9"/>
+      </g>
+      <g transform="translate(22,34)">
+        <circle r="5" fill="#F5F5F0"/><circle r="4" cx="-5" cy="-2" fill="#F5F5F0"/><circle r="4.5" cx="4" cy="-3" fill="#F5F5F0"/>
+        <circle cx="0" cy="0" r="1" fill="#D0D890" opacity=".85"/>
+      </g>
+      <g transform="translate(60,180)">
+        <circle r="5" fill="white"/><circle r="4" cx="-5" cy="-2" fill="white"/><circle r="4" cx="4" cy="-2" fill="white"/>
+        <circle cx="0" cy="0" r="1.1" fill="#C8E060" opacity=".9"/>
+      </g>
+    </g>
+
+    <!-- 전경 오른쪽 굵은 가지 -->
+    <g opacity=".92">
+      <path d="M398,240 Q385,210 372,180 Q364,154 376,124" stroke="#2A1508" stroke-width="4.5" fill="none" stroke-linecap="round"/>
+      <path d="M376,124 Q368,100 380,74 Q385,54 392,36" stroke="#2A1508" stroke-width="2.8" fill="none" stroke-linecap="round"/>
+      <path d="M376,124 Q358,108 346,88" stroke="#2A1508" stroke-width="2.4" fill="none" stroke-linecap="round"/>
+      <path d="M372,180 Q354,166 340,152" stroke="#2A1508" stroke-width="2" fill="none" stroke-linecap="round"/>
+      <path d="M372,180 Q388,165 398,150" stroke="#2A1508" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+      <path d="M380,74 Q370,54 364,34" stroke="#2A1508" stroke-width="1.7" fill="none" stroke-linecap="round"/>
+      <path d="M380,74 Q392,54 398,36" stroke="#2A1508" stroke-width="1.6" fill="none" stroke-linecap="round"/>
+      <path d="M346,88 Q334,70 330,52" stroke="#2A1508" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+      <path d="M346,88 Q356,72 360,56" stroke="#2A1508" stroke-width="1.4" fill="none" stroke-linecap="round"/>
+      <path d="M340,152 Q326,140 320,124" stroke="#2A1508" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+    </g>
+    <!-- 전경 오른쪽 꽃 -->
+    <g opacity=".95">
+      <g transform="translate(392,35)">
+        <circle r="7" fill="white"/><circle r="5.5" cx="-8" cy="-3" fill="white"/><circle r="6" cx="3" cy="-6" fill="white"/>
+        <circle r="5" cx="-3" cy="-10" fill="white"/><circle r="5" cx="7" cy="4" fill="white"/><circle r="4.5" cx="-6" cy="5" fill="white"/>
+        <circle cx="0" cy="0" r="1.4" fill="#C8E060" opacity=".95"/>
+      </g>
+      <g transform="translate(364,33)">
+        <circle r="6" fill="white"/><circle r="5" cx="-6" cy="-3" fill="white"/><circle r="5.5" cx="5" cy="-3" fill="white"/>
+        <circle r="4.5" cx="0" cy="-9" fill="white"/><circle cx="0" cy="0" r="1.3" fill="#C8E060" opacity=".9"/>
+      </g>
+      <g transform="translate(398,35)">
+        <circle r="6.5" fill="white"/><circle r="5" cx="-8" cy="-3" fill="white"/><circle r="5.5" cx="2" cy="-7" fill="white"/>
+        <circle r="4.5" cx="-4" cy="-10" fill="white"/><circle r="5" cx="5" cy="5" fill="white"/><circle r="4" cx="-5" cy="6" fill="white"/>
+        <circle cx="0" cy="0" r="1.3" fill="#C8E060" opacity=".9"/>
+      </g>
+      <g transform="translate(330,51)">
+        <circle r="6.5" fill="white"/><circle r="5" cx="-7" cy="-2" fill="white"/><circle r="5.5" cx="6" cy="-3" fill="white"/>
+        <circle r="4.5" cx="0" cy="-9" fill="white"/><circle cx="0" cy="0" r="1.3" fill="#C8E060" opacity=".9"/>
+      </g>
+      <g transform="translate(360,56)">
+        <circle r="5.5" fill="white"/><circle r="4.5" cx="-6" cy="-2" fill="white"/><circle r="5" cx="5" cy="-3" fill="white"/>
+        <circle cx="0" cy="0" r="1.2" fill="#C8E060" opacity=".9"/>
+      </g>
+      <g transform="translate(346,87)">
+        <circle r="7" fill="white"/><circle r="5.5" cx="-8" cy="-2" fill="white"/><circle r="6" cx="6" cy="-3" fill="white"/>
+        <circle r="5" cx="0" cy="-10" fill="white"/><circle r="4.5" cx="-5" cy="7" fill="white"/><circle r="5" cx="7" cy="5" fill="white"/>
+        <circle cx="0" cy="0" r="1.4" fill="#C8E060" opacity=".95"/>
+      </g>
+      <g transform="translate(340,151)">
+        <circle r="6" fill="white"/><circle r="4.5" cx="-6" cy="-2" fill="white"/><circle r="5" cx="5" cy="-2" fill="white"/>
+        <circle cx="0" cy="0" r="1.2" fill="#C8E060" opacity=".9"/>
+      </g>
+      <g transform="translate(320,123)">
+        <circle r="5.5" fill="white"/><circle r="4.5" cx="-6" cy="-2" fill="white"/><circle r="5" cx="5" cy="-3" fill="white"/>
+        <circle r="4" cx="0" cy="-8" fill="white"/><circle cx="0" cy="0" r="1.2" fill="#C8E060" opacity=".9"/>
+      </g>
+    </g>
+  </svg>
+    <div class="intro-hero-ov"></div>
+    <div class="intro-hero-content">
+      <div class="intro-farm-name">남양주 먹골배 광진농원</div>
+      <div class="intro-farm-sub">산지 직배송 택배 주문서</div>
+    </div>
+  </div>
+  <div class="intro-gold-bar"></div>
+  <div class="intro-body">
+    <div class="intro-greeting">안녕하세요.<br>남양주 먹골배 광진농원입니다.</div>
+    <div class="intro-desc">해당 페이지는 광진농원 택배 주문서입니다.<br>아래의 2가지 주문 방식 중 하나를 선택해 주세요.</div>
+    <div class="intro-btn-wrap">
+      <button class="intro-btn intro-btn-small" onclick="goSmallOrder()">
+        <div class="intro-btn-icon">🍐</div>
+        <div class="intro-btn-text">
+          <div class="intro-btn-title">소량 주문</div>
+          <div class="intro-btn-sub">1 ~ 10박스 주문</div>
+        </div>
+      </button>
+      <button class="intro-btn intro-btn-large" onclick="showBulkModal()">
+        <div class="intro-btn-icon">📦</div>
+        <div class="intro-btn-text">
+          <div class="intro-btn-title">대량 주문</div>
+          <div class="intro-btn-sub">10박스 이상 주문</div>
+        </div>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ── 대량 주문 안내 팝업 ── -->
+<div class="bulk-modal-overlay" id="bulkModal">
+  <div class="bulk-modal">
+    <div class="bulk-modal-icon">📦</div>
+    <div class="bulk-modal-title">대량 주문 안내</div>
+    <div class="bulk-modal-desc">대량 주문의 경우, 광진농원 관리자와<br><b>유선 통화를 한 이후에</b><br>해당 메일로 내역을 보내주세요.</div>
+    <div class="bulk-modal-email" onclick="copyEmail()">
+      <span>✉</span>
+      <span id="bulkEmailTxt">santar7021@gmail.com</span>
+    </div>
+    <div class="bulk-copy-msg" id="bulkCopyMsg"></div>
+    <button class="bulk-modal-btn" onclick="closeBulkModal()">확인</button>
+  </div>
+</div>
+
+<!-- ── HERO ── -->
+<div class="hero">
+  <!-- SVG 배꽃 과수원 배경 -->
+  <svg class="hero-svg" viewBox="0 0 390 240" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="#8AAEC8"/>
+        <stop offset="40%" stop-color="#A8C8DC"/>
+        <stop offset="100%" stop-color="#C8D8E4"/>
+      </linearGradient>
+      <linearGradient id="hill1" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="#7A9B6A"/>
+        <stop offset="100%" stop-color="#5A7A4A"/>
+      </linearGradient>
+      <linearGradient id="hill2" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="#6A8B5A"/>
+        <stop offset="100%" stop-color="#4A6A3A"/>
+      </linearGradient>
+      <linearGradient id="ground" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="#7A9A5A"/>
+        <stop offset="100%" stop-color="#4A6A30"/>
+      </linearGradient>
+      <filter id="blur1"><feGaussianBlur stdDeviation="1.2"/></filter>
+      <filter id="blur2"><feGaussianBlur stdDeviation="0.6"/></filter>
+    </defs>
+
+    <!-- 하늘 -->
+    <rect width="390" height="240" fill="url(#sky)"/>
+
+    <!-- 구름 -->
+    <g opacity=".28" filter="url(#blur1)">
+      <ellipse cx="80" cy="38" rx="38" ry="14" fill="white"/>
+      <ellipse cx="105" cy="32" rx="28" ry="12" fill="white"/>
+      <ellipse cx="60" cy="34" rx="22" ry="10" fill="white"/>
+      <ellipse cx="290" cy="28" rx="32" ry="11" fill="white"/>
+      <ellipse cx="315" cy="23" rx="22" ry="9" fill="white"/>
+      <ellipse cx="268" cy="25" rx="18" ry="8" fill="white"/>
+    </g>
+
+    <!-- 먼 산 1 -->
+    <path d="M0,130 Q30,98 65,108 Q95,88 130,100 Q160,78 195,90 Q225,72 262,84 Q292,65 328,78 Q355,68 390,80 L390,240 L0,240Z" fill="url(#hill1)" opacity=".45"/>
+    <!-- 먼 산 2 -->
+    <path d="M0,148 Q35,122 72,132 Q105,112 142,124 Q172,106 208,118 Q238,100 275,112 Q305,96 342,108 Q365,100 390,110 L390,240 L0,240Z" fill="url(#hill2)" opacity=".38"/>
+
+    <!-- 풀밭 -->
+    <path d="M0,192 Q50,178 110,184 Q170,176 230,182 Q290,175 350,181 Q372,178 390,184 L390,240 L0,240Z" fill="url(#ground)" opacity=".52"/>
+    <path d="M0,210 Q60,200 130,205 Q200,198 270,204 Q330,198 390,204 L390,240 L0,240Z" fill="#5A7A3A" opacity=".35"/>
+
+    <!-- 중경 나무 행렬 (격자형) -->
+    <g opacity=".48" stroke="#3A2010" fill="none">
+      <g stroke-width="1.6">
+        <line x1="15" y1="195" x2="15" y2="158"/><line x1="15" y1="168" x2="8" y2="158"/><line x1="15" y1="168" x2="22" y2="158"/>
+        <line x1="52" y1="195" x2="52" y2="156"/><line x1="52" y1="166" x2="44" y2="156"/><line x1="52" y1="166" x2="60" y2="156"/>
+        <line x1="89" y1="195" x2="89" y2="158"/><line x1="89" y1="168" x2="81" y2="158"/><line x1="89" y1="168" x2="97" y2="158"/>
+        <line x1="126" y1="195" x2="126" y2="156"/><line x1="126" y1="166" x2="118" y2="156"/><line x1="126" y1="166" x2="134" y2="156"/>
+        <line x1="163" y1="195" x2="163" y2="158"/><line x1="163" y1="168" x2="155" y2="158"/><line x1="163" y1="168" x2="171" y2="158"/>
+        <line x1="200" y1="195" x2="200" y2="156"/><line x1="200" y1="166" x2="192" y2="156"/><line x1="200" y1="166" x2="208" y2="156"/>
+        <line x1="237" y1="195" x2="237" y2="158"/><line x1="237" y1="168" x2="229" y2="158"/><line x1="237" y1="168" x2="245" y2="158"/>
+        <line x1="274" y1="195" x2="274" y2="156"/><line x1="274" y1="166" x2="266" y2="156"/><line x1="274" y1="166" x2="282" y2="156"/>
+        <line x1="311" y1="195" x2="311" y2="158"/><line x1="311" y1="168" x2="303" y2="158"/><line x1="311" y1="168" x2="319" y2="158"/>
+        <line x1="348" y1="195" x2="348" y2="156"/><line x1="348" y1="166" x2="340" y2="156"/><line x1="348" y1="166" x2="356" y2="156"/>
+        <line x1="385" y1="195" x2="385" y2="158"/><line x1="385" y1="168" x2="377" y2="158"/><line x1="385" y1="168" x2="393" y2="158"/>
+      </g>
+    </g>
+    <!-- 중경 배꽃 -->
+    <g opacity=".55">
+      <g transform="translate(15,157)"><circle r="5.5" fill="white"/><circle r="4.5" cx="6" cy="-2" fill="white"/><circle r="4.5" cx="-5" cy="-3" fill="white"/><circle r="3.5" cx="1" cy="6" fill="white"/><circle r="4" cx="-2" cy="-7" fill="white"/></g>
+      <g transform="translate(52,155)"><circle r="6" fill="white"/><circle r="4.5" cx="7" cy="-2" fill="white"/><circle r="5" cx="-5" cy="-2" fill="white"/><circle r="4" cx="0" cy="7" fill="white"/></g>
+      <g transform="translate(89,157)"><circle r="5.5" fill="white"/><circle r="4" cx="6" cy="-2" fill="white"/><circle r="5" cx="-5" cy="-3" fill="white"/><circle r="3.5" cx="1" cy="6" fill="white"/></g>
+      <g transform="translate(126,155)"><circle r="6" fill="white"/><circle r="5" cx="6" cy="-2" fill="white"/><circle r="4.5" cx="-6" cy="-2" fill="white"/><circle r="4" cx="0" cy="7" fill="white"/></g>
+      <g transform="translate(163,157)"><circle r="5.5" fill="white"/><circle r="4.5" cx="6" cy="-2" fill="white"/><circle r="4.5" cx="-5" cy="-3" fill="white"/></g>
+      <g transform="translate(200,155)"><circle r="6" fill="white"/><circle r="5" cx="7" cy="-2" fill="white"/><circle r="4.5" cx="-5" cy="-2" fill="white"/><circle r="4" cx="0" cy="7" fill="white"/></g>
+      <g transform="translate(237,157)"><circle r="5.5" fill="white"/><circle r="4" cx="6" cy="-2" fill="white"/><circle r="5" cx="-5" cy="-3" fill="white"/></g>
+      <g transform="translate(274,155)"><circle r="6" fill="white"/><circle r="4.5" cx="6" cy="-2" fill="white"/><circle r="5" cx="-6" cy="-2" fill="white"/><circle r="4" cx="0" cy="7" fill="white"/></g>
+      <g transform="translate(311,157)"><circle r="5.5" fill="white"/><circle r="4.5" cx="6" cy="-2" fill="white"/><circle r="4.5" cx="-5" cy="-3" fill="white"/></g>
+      <g transform="translate(348,155)"><circle r="6" fill="white"/><circle r="5" cx="6" cy="-2" fill="white"/><circle r="4.5" cx="-5" cy="-2" fill="white"/><circle r="3.5" cx="0" cy="7" fill="white"/></g>
+    </g>
+
+    <!-- 전경 왼쪽 굵은 가지 -->
+    <g opacity=".94">
+      <path d="M-8,240 Q2,208 16,178 Q24,152 12,120" stroke="#2A1508" stroke-width="5" fill="none" stroke-linecap="round"/>
+      <path d="M12,120 Q18,96 6,68 Q0,48 -4,28" stroke="#2A1508" stroke-width="3" fill="none" stroke-linecap="round"/>
+      <path d="M12,120 Q30,102 46,82" stroke="#2A1508" stroke-width="2.6" fill="none" stroke-linecap="round"/>
+      <path d="M16,178 Q36,164 54,150" stroke="#2A1508" stroke-width="2.2" fill="none" stroke-linecap="round"/>
+      <path d="M16,178 Q0,162 -8,146" stroke="#2A1508" stroke-width="2" fill="none" stroke-linecap="round"/>
+      <path d="M6,68 Q-4,50 -10,30" stroke="#2A1508" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+      <path d="M6,68 Q18,52 22,34" stroke="#2A1508" stroke-width="1.6" fill="none" stroke-linecap="round"/>
+      <path d="M46,82 Q58,66 60,48" stroke="#2A1508" stroke-width="1.6" fill="none" stroke-linecap="round"/>
+      <path d="M46,82 Q34,66 30,50" stroke="#2A1508" stroke-width="1.4" fill="none" stroke-linecap="round"/>
+      <path d="M54,150 Q68,138 72,122" stroke="#2A1508" stroke-width="1.6" fill="none" stroke-linecap="round"/>
+      <path d="M54,150 Q56,166 60,180" stroke="#2A1508" stroke-width="1.4" fill="none" stroke-linecap="round"/>
+      <path d="M-4,28 Q-10,14 -14,2" stroke="#2A1508" stroke-width="1.4" fill="none" stroke-linecap="round"/>
+      <path d="M-4,28 Q8,16 12,4" stroke="#2A1508" stroke-width="1.3" fill="none" stroke-linecap="round"/>
+    </g>
+    <!-- 전경 왼쪽 꽃 - 크고 풍성하게 -->
+    <g opacity=".97">
+      <!-- 상단 꽃 뭉치들 -->
+      <g transform="translate(-4,27)">
+        <circle r="7" fill="white"/><circle r="5.5" cx="-8" cy="-3" fill="white"/><circle r="6" cx="7" cy="-4" fill="white"/>
+        <circle r="5" cx="0" cy="-10" fill="white"/><circle r="4.5" cx="-5" cy="7" fill="white"/><circle r="5" cx="7" cy="5" fill="white"/>
+        <circle r="4" cx="-10" cy="3" fill="white"/><circle r="4.5" cx="12" cy="-1" fill="white"/>
+        <circle cx="0" cy="0" r="1.4" fill="#C8E060" opacity=".95"/><circle cx="-8" cy="-3" r="1.2" fill="#C8E060" opacity=".9"/>
+        <circle cx="7" cy="-4" r="1.3" fill="#C8E060" opacity=".9"/>
+      </g>
+      <g transform="translate(22,32)">
+        <circle r="6.5" fill="white"/><circle r="5" cx="-7" cy="-3" fill="white"/><circle r="5.5" cx="6" cy="-4" fill="white"/>
+        <circle r="4.5" cx="1" cy="-9" fill="white"/><circle r="4.5" cx="-4" cy="7" fill="white"/>
+        <circle cx="0" cy="0" r="1.3" fill="#C8E060" opacity=".9"/>
+      </g>
+      <g transform="translate(-10,25)">
+        <circle r="5.5" fill="white"/><circle r="4.5" cx="-6" cy="-3" fill="white"/><circle r="5" cx="5" cy="-3" fill="white"/>
+        <circle r="4" cx="0" cy="-8" fill="white"/><circle cx="0" cy="0" r="1.2" fill="#C8E060" opacity=".9"/>
+      </g>
+      <g transform="translate(12,3)">
+        <circle r="5" fill="white"/><circle r="4" cx="-5" cy="-2" fill="white"/><circle r="4.5" cx="5" cy="-3" fill="white"/>
+        <circle cx="0" cy="0" r="1.1" fill="#C8E060" opacity=".88"/>
+      </g>
+      <!-- 중간 가지 꽃들 -->
+      <g transform="translate(60,47)">
+        <circle r="7" fill="white"/><circle r="5.5" cx="-8" cy="-3" fill="white"/><circle r="6" cx="7" cy="-4" fill="white"/>
+        <circle r="5" cx="0" cy="-10" fill="white"/><circle r="4.5" cx="-4" cy="7" fill="white"/><circle r="5.5" cx="8" cy="4" fill="white"/>
+        <circle r="4" cx="13" cy="-2" fill="white"/>
+        <circle cx="0" cy="0" r="1.4" fill="#C8E060" opacity=".95"/><circle cx="-8" cy="-3" r="1.1" fill="#C8E060" opacity=".9"/>
+      </g>
+      <g transform="translate(30,50)">
+        <circle r="6" fill="white"/><circle r="4.5" cx="-6" cy="-2" fill="white"/><circle r="5" cx="5" cy="-3" fill="white"/>
+        <circle r="4" cx="1" cy="-8" fill="white"/><circle cx="0" cy="0" r="1.2" fill="#C8E060" opacity=".9"/>
+      </g>
+      <g transform="translate(72,121)">
+        <circle r="6.5" fill="white"/><circle r="5" cx="-7" cy="-2" fill="white"/><circle r="5.5" cx="6" cy="-3" fill="white"/>
+        <circle r="4.5" cx="0" cy="-9" fill="white"/><circle r="4.5" cx="-4" cy="6" fill="white"/>
+        <circle cx="0" cy="0" r="1.3" fill="#C8E060" opacity=".9"/>
+      </g>
+      <g transform="translate(22,34)">
+        <circle r="5" fill="#F5F5F0"/><circle r="4" cx="-5" cy="-2" fill="#F5F5F0"/><circle r="4.5" cx="4" cy="-3" fill="#F5F5F0"/>
+        <circle cx="0" cy="0" r="1" fill="#D0D890" opacity=".85"/>
+      </g>
+      <g transform="translate(60,180)">
+        <circle r="5" fill="white"/><circle r="4" cx="-5" cy="-2" fill="white"/><circle r="4" cx="4" cy="-2" fill="white"/>
+        <circle cx="0" cy="0" r="1.1" fill="#C8E060" opacity=".9"/>
+      </g>
+    </g>
+
+    <!-- 전경 오른쪽 굵은 가지 -->
+    <g opacity=".92">
+      <path d="M398,240 Q385,210 372,180 Q364,154 376,124" stroke="#2A1508" stroke-width="4.5" fill="none" stroke-linecap="round"/>
+      <path d="M376,124 Q368,100 380,74 Q385,54 392,36" stroke="#2A1508" stroke-width="2.8" fill="none" stroke-linecap="round"/>
+      <path d="M376,124 Q358,108 346,88" stroke="#2A1508" stroke-width="2.4" fill="none" stroke-linecap="round"/>
+      <path d="M372,180 Q354,166 340,152" stroke="#2A1508" stroke-width="2" fill="none" stroke-linecap="round"/>
+      <path d="M372,180 Q388,165 398,150" stroke="#2A1508" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+      <path d="M380,74 Q370,54 364,34" stroke="#2A1508" stroke-width="1.7" fill="none" stroke-linecap="round"/>
+      <path d="M380,74 Q392,54 398,36" stroke="#2A1508" stroke-width="1.6" fill="none" stroke-linecap="round"/>
+      <path d="M346,88 Q334,70 330,52" stroke="#2A1508" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+      <path d="M346,88 Q356,72 360,56" stroke="#2A1508" stroke-width="1.4" fill="none" stroke-linecap="round"/>
+      <path d="M340,152 Q326,140 320,124" stroke="#2A1508" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+    </g>
+    <!-- 전경 오른쪽 꽃 -->
+    <g opacity=".95">
+      <g transform="translate(392,35)">
+        <circle r="7" fill="white"/><circle r="5.5" cx="-8" cy="-3" fill="white"/><circle r="6" cx="3" cy="-6" fill="white"/>
+        <circle r="5" cx="-3" cy="-10" fill="white"/><circle r="5" cx="7" cy="4" fill="white"/><circle r="4.5" cx="-6" cy="5" fill="white"/>
+        <circle cx="0" cy="0" r="1.4" fill="#C8E060" opacity=".95"/>
+      </g>
+      <g transform="translate(364,33)">
+        <circle r="6" fill="white"/><circle r="5" cx="-6" cy="-3" fill="white"/><circle r="5.5" cx="5" cy="-3" fill="white"/>
+        <circle r="4.5" cx="0" cy="-9" fill="white"/><circle cx="0" cy="0" r="1.3" fill="#C8E060" opacity=".9"/>
+      </g>
+      <g transform="translate(398,35)">
+        <circle r="6.5" fill="white"/><circle r="5" cx="-8" cy="-3" fill="white"/><circle r="5.5" cx="2" cy="-7" fill="white"/>
+        <circle r="4.5" cx="-4" cy="-10" fill="white"/><circle r="5" cx="5" cy="5" fill="white"/><circle r="4" cx="-5" cy="6" fill="white"/>
+        <circle cx="0" cy="0" r="1.3" fill="#C8E060" opacity=".9"/>
+      </g>
+      <g transform="translate(330,51)">
+        <circle r="6.5" fill="white"/><circle r="5" cx="-7" cy="-2" fill="white"/><circle r="5.5" cx="6" cy="-3" fill="white"/>
+        <circle r="4.5" cx="0" cy="-9" fill="white"/><circle cx="0" cy="0" r="1.3" fill="#C8E060" opacity=".9"/>
+      </g>
+      <g transform="translate(360,56)">
+        <circle r="5.5" fill="white"/><circle r="4.5" cx="-6" cy="-2" fill="white"/><circle r="5" cx="5" cy="-3" fill="white"/>
+        <circle cx="0" cy="0" r="1.2" fill="#C8E060" opacity=".9"/>
+      </g>
+      <g transform="translate(346,87)">
+        <circle r="7" fill="white"/><circle r="5.5" cx="-8" cy="-2" fill="white"/><circle r="6" cx="6" cy="-3" fill="white"/>
+        <circle r="5" cx="0" cy="-10" fill="white"/><circle r="4.5" cx="-5" cy="7" fill="white"/><circle r="5" cx="7" cy="5" fill="white"/>
+        <circle cx="0" cy="0" r="1.4" fill="#C8E060" opacity=".95"/>
+      </g>
+      <g transform="translate(340,151)">
+        <circle r="6" fill="white"/><circle r="4.5" cx="-6" cy="-2" fill="white"/><circle r="5" cx="5" cy="-2" fill="white"/>
+        <circle cx="0" cy="0" r="1.2" fill="#C8E060" opacity=".9"/>
+      </g>
+      <g transform="translate(320,123)">
+        <circle r="5.5" fill="white"/><circle r="4.5" cx="-6" cy="-2" fill="white"/><circle r="5" cx="5" cy="-3" fill="white"/>
+        <circle r="4" cx="0" cy="-8" fill="white"/><circle cx="0" cy="0" r="1.2" fill="#C8E060" opacity=".9"/>
+      </g>
+    </g>
+  </svg>
+
+  <div class="hero-overlay"></div>
+  <div class="hero-overlay2"></div>
+  <div class="hero-content">
+    <div class="hero-title">남양주 <em>먹골배</em><br>광진농원</div>
+    <div class="hero-divider"></div>
+    <div class="hero-sub">주 문 서</div>
+  </div>
+</div>
+<div class="hero-bottom-gold"></div>
+<div class="info-bar">
+  <div class="info-bar-text">
+    <span>주소</span>경기 남양주시 별내면 광전리 269-2
+  </div>
+  <button class="copy-btn" id="copyAddrBtn" onclick="copyAddr()" type="button">
+    <span class="copy-icon">📋</span>복사
+  </button>
+</div>
+
+
+<!-- ── STEP NAV ── -->
+<div class="snav" id="snav">
+  <button class="sb act" onclick="gs(1)"><div class="sb-c">1</div><div class="sb-t">주문 입력</div></button>
+  <button class="sb" onclick="gs(2)"><div class="sb-c">2</div><div class="sb-t">배송·메모</div></button>
+  <button class="sb" onclick="gs(3)"><div class="sb-c">3</div><div class="sb-t">최종확인</div></button>
+</div>
+
+<!-- ── PAGE 1: 주문 목록 ── -->
+<div class="page act" id="p1">
+  <div style="height:6px"></div>
+  <div id="order-list"></div>
+  <button class="badd" type="button" id="add-order-btn" onclick="addOrder()">＋ 주문 추가</button>
+  <div style="height:10px"></div>
+  <div class="navr"><button class="bfwd" onclick="ns(1)">다음 단계 →</button></div>
+</div>
+
+<!-- ── PAGE 2: 배송·메모 ── -->
+<div class="page" id="p2">
+  <div style="height:6px"></div>
+  <div class="slbl"><div class="sbar"></div><span class="st">배송 희망일</span><span class="ss">미선택 시 최대한 빠르게</span></div>
+  <div class="card"><div class="ci">
+    <div class="f">
+      <div class="fl">날짜 <span class="opt">선택 사항</span></div>
+      <input type="date" id="ddate">
+      <div class="chips">
+        <button class="chip" type="button" onclick="setd(3,this)">3일 후</button>
+        <button class="chip" type="button" onclick="setd(5,this)">5일 후</button>
+        <button class="chip" type="button" onclick="setd(7,this)">1주일 후</button>
+        <button class="chip" type="button" onclick="setd(14,this)">2주일 후</button>
+      </div>
+    </div>
+  </div></div>
+  <div class="slbl" style="margin-top:4px"><div class="sbar"></div><span class="st">추가 요청사항</span><span class="ss">선물·포장 등</span></div>
+  <div class="card"><div class="ci">
+    <textarea id="memo" placeholder="예) 선물 포장 부탁드립니다 / 부재 시 경비실에 맡겨 주세요"></textarea>
+  </div></div>
+  <div class="navr"><button class="bbk" onclick="gs(1)">← 이전</button><button class="bfwd" onclick="ns(2)">주문서 확인 →</button></div>
+</div>
+
+<!-- ── PAGE 3: 최종 확인 ── -->
+<div class="page" id="p3">
+  <div style="height:6px"></div>
+  <div id="suma"></div>
+  <div class="notice"><b>📋 제출 전 확인해 주세요</b><br>내용이 맞으면 아래 버튼을 눌러 주문서를 제출해 주세요. 접수 후 광진농원에서 확인 연락드립니다.</div>
+  <div class="navr"><button class="bbk" onclick="gs(2)">← 수정</button><button class="bfwd gold" onclick="sub()">🍐 주문서 제출하기</button></div>
+</div>
+
+<!-- ── PAGE 4: 완료 ── -->
+<div class="page" id="p4">
+  <div class="done-wrap">
+    <div class="done-ico">🍐</div>
+    <h2>주문이 완료되었습니다.</h2>
+    <p>주문이 확인되면<br>카카오톡으로 알려드립니다.</p>
+    <div class="done-farm">광진농원</div>
+    <button class="bnew" type="button" onclick="rst()">새 주문서 작성</button>
+  </div>
+</div>
+
+<script>
+
+const DB={"서울특별시":{"강남구":["개포동","논현동","대치동","도곡동","삼성동","세곡동","수서동","신사동","압구정동","역삼동","율현동","일원동","자곡동","청담동"],"강동구":["강일동","고덕동","길동","둔촌동","명일동","상일동","성내동","암사동","천호동"],"강북구":["미아동","번동","수유동","우이동"],"강서구":["가양동","개화동","공항동","등촌동","마곡동","방화동","염창동","오곡동","오쇠동","외발산동","화곡동"],"관악구":["봉천동","신림동"],"광진구":["구의동","광장동","군자동","능동","자양동","중곡동","화양동"],"구로구":["가리봉동","개봉동","고척동","구로동","궁동","신도림동","오류동","온수동","천왕동","항동"],"금천구":["독산동","시흥동"],"노원구":["공릉동","월계동","중계동","하계동","상계동"],"도봉구":["도봉동","방학동","쌍문동","창동"],"동대문구":["답십리동","장안동","전농동","청량리동","회기동","이문동","용신동","신설동","제기동","휘경동"],"동작구":["노량진동","대방동","동작동","본동","사당동","상도동","신대방동"],"마포구":["공덕동","구수동","노고산동","도화동","동교동","마포동","망원동","상암동","서교동","성산동","신공덕동","신수동","아현동","연남동","용강동","합정동"],"서대문구":["남가좌동","냉천동","북가좌동","신촌동","연희동","창천동","충정로동","홍제동","홍은동"],"서초구":["내곡동","반포동","방배동","서초동","신원동","양재동","염곡동","우면동","잠원동"],"성동구":["금호동","마장동","사근동","성수동","송정동","용답동","응봉동","행당동"],"성북구":["길음동","돈암동","보문동","석관동","성북동","안암동","월곡동","장위동","정릉동","종암동"],"송파구":["가락동","거여동","마천동","문정동","방이동","삼전동","석촌동","송파동","신천동","오금동","위례동","잠실동","장지동","풍납동"],"양천구":["목동","신정동"],"영등포구":["당산동","대림동","도림동","문래동","신길동","양평동","여의도동","영등포동"],"용산구":["갈월동","동빙고동","보광동","서빙고동","이촌동","이태원동","청파동","한남동","후암동"],"은평구":["갈현동","구산동","대조동","불광동","수색동","신사동","역촌동","응암동","진관동"],"종로구":["가회동","견지동","계동","공평동","교남동","교북동","내수동","누상동","누하동","당주동","도렴동","돈의동","동숭동","명륜동","묘동","무악동","봉익동","부암동","사간동","사직동","삼청동","서린동","소격동","수송동","숭인동","신문로","안국동","연지동","옥인동","와룡동","원남동","원서동","인사동","인왕동","재동","적선동","종로","중학동","창성동","체부동","청진동","통의동","통인동","팔판동","평창동","효제동","훈정동"],"중구":["광희동","남대문로","남산동","다동","을지로동","장충동","정동","충무로동","태평로","필동","회현동"],"중랑구":["망우동","면목동","묵동","상봉동","신내동","중화동"]},"경기도":{"가평군":["가평읍","설악면","청평면","조종면","북면","상면"],"고양시 덕양구":["관산동","내유동","내흥동","대장동","덕은동","도내동","동산동","벽제동","삼송동","성사동","신원동","원당동","원흥동","주교동","지축동","창릉동","토당동","향동동","화전동","화정동"],"고양시 일산동구":["마두동","백석동","사리현동","식사동","장항동","정발산동","중산동","풍산동"],"고양시 일산서구":["가좌동","구산동","대화동","덕이동","법곳동","산황동","송포동","탄현동","현중동"],"과천시":["갈현동","관문동","막계동","문원동","별양동","부림동","원문동","주암동"],"광명시":["광명동","노온사동","소하동","철산동","하안동"],"광주시":["경안동","광남동","남한산성면","도척면","목현동","문형동","삼동","실촌읍","쌍령동","오포읍","초월읍","퇴촌면"],"구리시":["갈매동","교문동","동구동","사노동","수택동","아천동","인창동"],"군포시":["궁내동","금정동","당동","둔대동","산본동","속달동","수리동"],"김포시":["감정동","걸포동","고촌읍","대곶면","마산동","사우동","양촌읍","운양동","장기동","통진읍","하성면","풍무동"],"남양주시":["가운동","다산동","별내동","별내면","수동면","오남읍","와부읍","조안면","진건읍","진접읍","퇴계원읍","평내동","호평동","화도읍"],"동두천시":["광암동","내행동","동두천동","상패동","생연동","송내동","탑동동","지행동"],"부천시":["고강동","괴안동","대장동","도당동","삼정동","상동","소사동","소사본동","심곡동","역곡동","오정동","옥길동","원미동","중동","중흥동"],"성남시 분당구":["구미동","금곡동","대장동","백현동","분당동","불정동","삼평동","서현동","수내동","야탑동","운중동","이매동","정자동","판교동"],"성남시 수정구":["고등동","금토동","단대동","둔전동","복정동","사송동","산성동","상적동","시흥동","신흥동","양지동","오야동","창곡동"],"성남시 중원구":["갈현동","금광동","도촌동","둔촌동","상대원동","성남동","은행동","중앙동"],"수원시 권선구":["고색동","곡반정동","금곡동","권선동","구운동","당수동","대황교동","세류동","오목천동","입북동","장지동","탑동","평동","호매실동"],"수원시 영통구":["광교동","망포동","매탄동","신동","원천동","이의동","정자동","하동"],"수원시 장안구":["연무동","영화동","이목동","율전동","조원동","천천동","파장동"],"수원시 팔달구":["고등동","남창동","매산로","매향동","북수동","세권동","신풍동","영동","우만동","인계동","지동","화서동"],"시흥시":["거모동","계수동","과림동","군자동","금이동","대야동","매화동","목감동","물왕동","방산동","산현동","신현동","안현동","월곶동","은행동","장곡동","정왕동","조남동","죽율동","포동","하중동","화정동"],"안산시 단원구":["고잔동","대부남동","대부동동","대부북동","동산동","선감동","성곡동","신길동","와동","원곡동","초지동","풍도동"],"안산시 상록구":["건건동","본오동","부곡동","사동","수암동","양상동","이동","일동","팔곡동"],"안성시":["가사동","가현동","고삼면","공도읍","금광면","대덕면","미양면","보개면","서운면","양성면","원곡면","일죽면","죽산면","중리동","추곡동"],"안양시 동안구":["갈산동","관양동","귀인동","달안동","비산동","호계동"],"안양시 만안구":["박달동","안양동","석수동"],"양주시":["광사동","고암동","남면","덕계동","덕정동","마전동","백석읍","봉양동","삼숭동","유양동","은현면","장흥면","회암동","회정동"],"양평군":["강상면","강하면","개군면","고읍면","단월면","양동면","양평읍","옥천면","용문면","지평면","청운면"],"여주시":["가남읍","강천면","금사면","대신면","북내면","산북면","여주읍","점동면","흥천면"],"연천군":["관인면","군남면","미산면","백학면","신서면","왕징면","전곡읍","중면","청산면"],"오산시":["가장동","갈곶동","고현동","금암동","내삼미동","누읍동","대원동","두곡동","부산동","세마동","수청동","외삼미동","원동","은계동","지곶동","청학동","초평동"],"용인시 기흥구":["고매동","공세동","구갈동","기흥동","농서동","동백동","마북동","보정동","상갈동","서천동","신갈동","언남동","영덕동","지석동","청덕동"],"용인시 수지구":["고기동","동천동","상현동","성복동","신봉동","죽전동"],"용인시 처인구":["남사읍","모현읍","백암면","양지면","역북동","원삼면","유방동","이동읍"],"의왕시":["고천동","내손동","오전동","왕곡동","청계동"],"의정부시":["가능동","가산동","낙양동","녹양동","민락동","신곡동","용현동","의정부동","자일동","장암동","호원동"],"이천시":["관고동","대월면","마장면","모가면","백사면","부발읍","설성면","신둔면","안흥동","장호원읍","창전동"],"파주시":["광탄면","교하동","금촌동","문산읍","법원읍","봉암동","야당동","운정동","월롱면","조리읍","진동면","탄현면","파주읍","적성면"],"평택시":["가재동","고덕면","고덕동","군문동","독곡동","동삭동","모곡동","비전동","서정동","세교동","소사동","신장동","안중읍","오성면","용이동","유천동","진위면","청북읍","팽성읍","포승읍"],"포천시":["가산면","관인면","군내면","내촌면","선단동","소흘읍","신북면","영북면","영중면","이동면","일동면","창수면","포천동"],"하남시":["감북동","감이동","감일동","덕풍동","미사동","망월동","신장동","창우동"],"화성시":["남양읍","동탄면","마도면","매송면","봉담읍","비봉면","서신면","송산면","수화동","양감면","우정읍","장안면","정남면","팔탄면","향남읍"]},"인천광역시":{"강화군":["강화읍","교동면","길상면","내가면","불은면","삼산면","서도면","선원면","양도면","하점면","화도면"],"계양구":["계산동","귤현동","다남동","동양동","박촌동","병방동","상야동","서운동","작전동"],"남동구":["간석동","고잔동","구월동","남촌도림동","논현동","만수동","서창동","수산동"],"동구":["금창동","만석동","송림동","송현동","화수동","화평동"],"미추홀구":["관교동","도화동","문학동","숭의동","용현동","주안동"],"부평구":["부개동","부평동","산곡동","삼산동","십정동","청천동","갈산동"],"서구":["가정동","검단동","검암동","공촌동","금곡동","당하동","대곡동","마전동","백석동","불로동","신현동","심곡동","연희동","오류동","왕길동","원당동"],"연수구":["동춘동","선학동","송도동","연수동","옥련동","청학동"],"옹진군":["백령면","대청면","덕적면","영흥면","자월면","북도면","연평면"],"중구":["관동","내동","답동","도원동","북성동","선화동","신포동","신흥동","운북동","운서동","중산동","영종동"]},"부산광역시":{"강서구":["강동동","구랑동","눌차동","대저동","대항동","명지동","미음동","범방동","봉림동","신호동","죽동동","지사동"],"금정구":["구서동","금사동","금성동","남산동","노포동","두구동","부곡동","서동","선두구동","장전동"],"기장군":["기장읍","일광읍","정관읍","장안읍","철마면"],"남구":["감만동","대연동","문현동","용당동","용호동","우암동"],"동구":["범일동","수정동","좌천동","초량동"],"동래구":["낙민동","명장동","복산동","사직동","수안동","안락동","온천동"],"부산진구":["가야동","개금동","당감동","범전동","범천동","부전동","양정동","연지동","전포동","초읍동"],"북구":["구포동","금곡동","덕천동","만덕동","화명동"],"사상구":["감전동","괘법동","덕포동","모라동","삼락동","엄궁동","주례동"],"사하구":["감천동","괴정동","구평동","다대동","당리동","신평동","장림동"],"서구":["남부민동","대신동","동대신동","부민동","서대신동","아미동","초장동"],"수영구":["광안동","남천동","민락동","수영동","망미동"],"연제구":["거제동","연산동"],"영도구":["남항동","동삼동","봉래동","영선동","청학동","태종대동"],"중구":["광복동","남포동","대청동","동광동","보수동","영주동","중앙동"],"해운대구":["반송동","반여동","석대동","송정동","우동","재송동","좌동","중동"]},"대구광역시":{"남구":["대명동","봉덕동","이천동"],"달서구":["감삼동","갈산동","도원동","본동","본리동","상인동","성당동","송현동","신당동","월성동","유천동","이곡동","장기동","죽전동","진천동"],"달성군":["가창면","구지면","논공읍","다사읍","옥포읍","유가읍","하빈면","현풍읍","화원읍"],"동구":["각산동","공산동","방촌동","봉무동","신기동","신서동","신암동","신천동","지저동","평광동"],"북구":["검단동","구암동","국우동","대현동","동천동","매천동","산격동","서변동","읍내동","조야동","칠성동","침산동","팔달동"],"서구":["내당동","비산동","원대동","중리동","평리동"],"수성구":["가천동","고모동","노변동","두산동","만촌동","범물동","범어동","사월동","삼덕동","상동","시지동","신매동","연호동","욱수동","이천동","중동","파동","황금동"],"중구":["공평동","남산동","대봉동","대신동","동인동","삼덕동","수창동","완전동","용덕동","인교동","전동","종로동","태평로"]},"광주광역시":{"광산구":["고룡동","도산동","동림동","두정동","명화동","산정동","선암동","소촌동","수완동","신가동","신창동","신흥동","어룡동","오선동","운남동","월계동","월곡동","임곡동","장덕동","지죽동","첨단동","하남동"],"남구":["구동","도금동","방림동","봉선동","사직동","양림동","월산동","진월동"],"동구":["계림동","광산동","궁동","금남로","남동","대인동","소태동","수기동","용산동","지산동","충장로","학동"],"북구":["각화동","건국동","경열동","대촌동","동림동","동운동","두암동","문흥동","본촌동","삼각동","생용동","신안동","신용동","양산동","연제동","오치동","용전동","운암동","우산동","유동","일곡동","중흥동","풍향동"],"서구":["금호동","농성동","내방동","동천동","마륵동","벽진동","서창동","세하동","쌍촌동","유덕동","치평동","화정동"]},"대전광역시":{"대덕구":["덕암동","목상동","비래동","상서동","송촌동","신탄진동","오정동","와동","이현동","중리동"],"동구":["가오동","낭월동","대별동","대성동","마산동","비룡동","삼성동","성남동","소제동","신상동","신안동","용계동","용전동","이사동","인동","주산동","주촌동","중앙동","판암동","홍도동"],"서구":["갈마동","관저동","괴정동","내동","도마동","도안동","둔산동","만년동","복수동","봉명동","산직동","삼천동","용문동","월평동","정림동","탄방동"],"유성구":["가정동","갑동","계산동","관평동","구암동","금고동","금탄동","노은동","대정동","덕명동","덕진동","둔곡동","봉명동","신동","어은동","원내동","원신흥동","자운동","장대동","전민동","지족동","추목동","하기동"],"중구":["대흥동","목달동","문화동","부사동","사정동","선화동","안영동","오류동","용두동","은행동","침산동","태평동"]},"울산광역시":{"남구":["달동","삼산동","삼호동","선암동","신정동","야음동","여천동","옥동","무거동"],"동구":["동부동","방어동","서부동","일산동","전하동","주전동"],"북구":["강동동","구유동","달천동","대안동","명촌동","상안동","신명동","염포동","정자동","중산동","진장동","창평동","호계동"],"울주군":["범서읍","청량읍","온산읍","온양읍","서생면","웅촌면","삼남읍","삼동면","두서면","두동면","상북면","언양읍"],"중구":["교동","남외동","다운동","도산동","반구동","복산동","성안동","약사동","우정동","유곡동","태화동","학산동"]},"세종특별자치시":{"세종시":["가람동","고운동","금남면","나성동","남면","대평동","도담동","반곡동","보람동","부강면","새롬동","소담동","소정면","아름동","연기면","연동면","연서면","전동면","전의면","조치원읍","종촌동","해밀동"]},"강원특별자치도":{"강릉시":["강동면","구정면","내곡동","노암동","사천면","성산면","연곡면","옥천동","왕산면","옥계면","주문진읍","홍제동"],"고성군":["간성읍","거진읍","죽왕면","토성면","현내면"],"동해시":["구미동","나안동","동호동","묵호동","북삼동","송정동","쇄운동","이로동","지흥동","천곡동","추암동"],"삼척시":["교동","남양동","도계읍","미로면","미인동","사직동","성내동","오분동","원당동","정라동","중앙동","하장면"],"속초시":["교동","금호동","노학동","대포동","도문동","동명동","설악동","영랑동","조양동","중앙동","청학동"],"양구군":["동면","방산면","양구읍","해안면"],"양양군":["강현면","서면","손양면","양양읍","현북면","현남면"],"영월군":["김삿갓면","무릉도원면","북면","산솔면","상동읍","수주면","영월읍","주천면"],"원주시":["가현동","귀래면","단계동","단구동","명륜동","무실동","문막읍","반곡동","봉산동","소초면","신림면","우산동","원동","판부면","호저면","흥업면"],"인제군":["기린면","남면","북면","서화면","인제읍"],"정선군":["고한읍","남면","북평면","사북읍","신동읍","여량면","임계면","정선읍"],"철원군":["갈말읍","근남면","근북면","동송읍","서면","철원읍"],"춘천시":["강남동","교동","남산면","남춘천동","동내면","동면","동산면","서면","소양동","신동","신북읍","중앙동","퇴계동"],"태백시":["금천동","문곡소도동","상장동","소도동","장성동","철암동","통동","황지동"],"평창군":["대화면","방림면","봉평면","용평면","진부면","평창읍","미탄면"],"홍천군":["남면","내면","내촌면","동면","두촌면","북방면","서면","서석면","홍천읍","화촌면"],"화천군":["간동면","사내면","상서면","하남면","화천읍"],"횡성군":["강림면","갑천면","공근면","둔내면","서원면","안흥면","우천면","횡성읍"]},"충청북도":{"괴산군":["감물면","괴산읍","문광면","사리면","소수면","장연면","청안면","청천면"],"단양군":["가곡면","단성면","단양읍","대강면","매포읍","어상천면","영춘면","적성면"],"보은군":["내북면","마로면","보은읍","산외면","삼승면","속리산면","수한면","외속리면","탄부면","회남면","회인면"],"영동군":["매곡면","상촌면","심천면","양강면","영동읍","용화면","추풍령면","황간면"],"옥천군":["군북면","동이면","안내면","안남면","옥천읍","이원면","청산면"],"음성군":["감곡면","금왕읍","대소면","맹동면","삼성면","생극면","소이면","음성읍"],"제천시":["교동","금성면","대랑동","덕산면","두학동","명동","모산동","봉양읍","수산면","신백동","의림지동","청전동","한수면"],"증평군":["도안면","증평읍"],"진천군":["광혜원면","덕산읍","문백면","백곡면","이월면","진천읍","초평면"],"청주시 상당구":["가덕면","낭성면","남일면","미원면","문의면","사천동","산성동","용암동","월오동"],"청주시 서원구":["개신동","분평동","산남동","성화개신죽림동","수곡동","시장동","장성동"],"청주시 청원구":["내수읍","북이면","오창읍","옥산면","율량동","주중동"],"청주시 흥덕구":["가경동","강내면","강외면","남이면","복대동","수의동","신봉동","옥산동","운천신봉동","지동동","향정동"],"충주시":["가금면","교현동","금가면","노은면","달천동","대소원면","동량면","목행동","살미면","산척면","소태면","수안보면","신니면","앙성면","엄정면","용탄동","이류면"]},"충청남도":{"계룡시":["금암동","두마면","신도안면","엄사면"],"공주시":["계룡면","금학동","나태동","반포면","사곡면","신관동","신풍면","우성면","유구읍","의당면","이인면","정안면","탄천면"],"금산군":["금산읍","남이면","남일면","복수면","부리면","추부면"],"논산시":["가야곡면","강경읍","광석면","구자곡면","노성면","논산동","벌곡면","부적면","상월면","성동면","양촌면"],"당진시":["고대면","대호지면","면천면","송악읍","순성면","신평면","우강면","정미면","합덕읍"],"보령시":["남포면","대천동","미산면","성주면","오천면","웅천읍","주교면","주산면","청라면","청소면"],"부여군":["규암면","남면","내산면","석성면","세도면","외산면","임천면","장암면","초촌면","홍산면"],"서산시":["고북면","대산읍","성연면","수석동","예천동","음암면","인지면","지곡면","팔봉면","해미면"],"서천군":["기산면","마산면","비인면","서천읍","시초면","종천면","판교면","한산면","화양면"],"아산시":["둔포면","배방읍","선장면","송악면","신창면","염치읍","음봉면","인주면","탕정면"],"예산군":["광시면","덕산면","대술면","봉산면","삽교읍","신암면","예산읍","오가면","응봉면"],"천안시 동남구":["광덕면","남면","동면","병천면","북면","성남면","수신면","풍세면"],"천안시 서북구":["두정동","불당동","성환읍","성거읍","소성면","직산읍"],"청양군":["대치면","목면","비봉면","장평면","정산면","청양읍","화성면"],"태안군":["고남면","근흥면","남면","소원면","안면읍","이원면","태안읍"],"홍성군":["갈산면","광천읍","구항면","금마면","서부면","은하면","장곡면","홍동면","홍성읍","홍북읍"]},"전북특별자치도":{"고창군":["고창읍","공음면","대산면","무장면","부안면","상하면","성내면","성송면","신림면","아산면","해리면","흥덕면"],"군산시":["구암동","나운동","내항동","미룡동","미성동","서수면","소룡동","신풍동","옥구읍","옥도면","옥산면","임피면","중동","회현면"],"김제시":["검산동","공덕면","금구면","금산면","김제동","만경읍","백구면","부량면","성덕면","신풍동","죽산면","진봉면"],"남원시":["금지면","대강면","대산면","덕과면","동면","보절면","산내면","산동면","송동면","수지면","아영면","운봉읍","이백면","인월면","주천면"],"무주군":["무주읍","무풍면","부남면","설천면","안성면","적상면"],"부안군":["계화면","동진면","부안읍","상서면","변산면","위도면","주산면","줄포면","진서면","하서면","행안면"],"순창군":["금과면","동계면","복흥면","순창읍","쌍치면","적성면","풍산면","팔덕면","인계면"],"완주군":["경천면","고산면","구이면","동상면","비봉면","상관면","삼례읍","소양면","용진읍","운주면","이서면"],"익산시":["낭산면","망성면","삼기면","성당면","여산면","용안면","웅포면","왕궁면","함라면","함열읍","황등면"],"임실군":["강진면","관촌면","덕치면","둔남면","신덕면","신평면","오수면","운암면","임실읍","청웅면"],"장수군":["계남면","계북면","번암면","산서면","장계면","장수읍","천천면"],"전주시 덕진구":["금상동","금암동","덕진동","만성동","산정동","서신동","송천동","우아동","인후동","장동","조촌동","중동"],"전주시 완산구":["교동","노송동","다가동","대성동","동서학동","서학동","중화산동","평화동"],"정읍시":["감곡면","고부면","과교동","내장동","덕천면","북면","산내면","산외면","소성면","시기동","신태인읍","영원면","옹동면","이평면","입암면","태인면"],"진안군":["동향면","마령면","백운면","부귀면","상전면","성수면","안천면","용담면","주천면","진안읍"]},"전라남도":{"강진군":["강진읍","군동면","대구면","도암면","마량면","병영면","성전면","신전면","작천면","칠량면"],"고흥군":["고흥읍","과역면","금산면","남양면","도덕면","도양읍","두원면","봉래면","점암면","포두면","풍양면"],"곡성군":["겸면","고달면","곡성읍","목사동면","삼기면","석곡면","오곡면","오산면","입면","죽곡면"],"광양시":["광양읍","골약동","다압면","봉강면","옥곡면","옥룡면","중마동","진상면","진월면","태인동"],"구례군":["간전면","광의면","구례읍","마산면","문척면","산동면","용방면","토지면"],"나주시":["공산면","금천면","남평읍","노안면","다도면","다시면","동강면","드들강면","반남면","봉황면","산포면","세지면","왕곡면"],"담양군":["가사문학면","고서면","곡성면","금성면","대덕면","대전면","담양읍","무정면","봉산면","용면","월산면"],"목포시":["달동","대성동","만호동","목원동","삼학도동","상동","상락동","연산동","옥암동","용해동","유달동","이로동","죽교동"],"무안군":["망운면","몽탄면","무안읍","삼향읍","청계면","현경면","해제면"],"보성군":["겸백면","노동면","득량면","문덕면","벌교읍","보성읍","복내면","율어면"],"순천시":["낙안면","별량면","상사면","서면","순천동","승주읍","외서면","월등면","주암면","황전면"],"신안군":["도초면","비금면","암태면","안좌면","압해읍","자은면","장산면","지도읍","팔금면","하의면","흑산면"],"여수시":["경호동","덕충동","돌산읍","묘도동","삼산면","소라면","율촌면","작도동"],"영광군":["낙월면","대마면","묘량면","백수읍","법성면","불갑면","염산면","영광읍","홍농읍"],"영암군":["군서면","금정면","덕진면","도포면","미암면","삼호읍","서호면","시종면","영암읍","학산면"],"완도군":["고금면","군외면","금당면","금일읍","노화읍","생일면","소안면","완도읍","청산면"],"장성군":["남면","동화면","북상면","북이면","북하면","삼계면","서삼면","장성읍","진원면","황룡면"],"장흥군":["관산읍","대덕읍","부산면","안양면","용산면","장동면","장평면","장흥읍"],"진도군":["고군면","군내면","의신면","임회면","진도읍","조도면"],"함평군":["대동면","엄다면","월야면","함평읍","해보면","학교면","나산면"],"해남군":["계곡면","마산면","문내면","북일면","북평면","삼산면","송지면","해남읍","현산면","화산면"],"화순군":["남면","능주면","도곡면","도암면","동복면","동면","북면","사평면","이양면","춘양면","청풍면","화순읍"]},"경상북도":{"경산시":["남천면","압량읍","와촌면","용성면","자인면","진량읍","하양읍"],"경주시":["강동면","건천읍","내남면","산내면","서면","안강읍","양남면","양북면","외동읍","천북면"],"고령군":["개진면","고령읍","다산면","덕곡면","성산면","쌍림면","운수면","우곡면"],"구미시":["고아읍","도개면","무을면","산동읍","선산읍","장천면"],"김천시":["감문면","감천면","개령면","구성면","농소면","대덕면","대항면","봉산면","부항면","어모면","조마면","증산면","지례면"],"문경시":["가은읍","농암면","동로면","문경읍","산양면","산북면","마성면","호계면"],"봉화군":["봉화읍","법전면","물야면","소천면","재산면","석포면","상운면","춘양면"],"상주시":["공검면","공성면","낙동면","내서면","모동면","모서면","사벌국면","외남면","외서면","은척면","이안면","중동면","청리면","화남면","화동면","화북면","화서면"],"성주군":["가천면","금수면","대가면","벽진면","성주읍","선남면","수륜면","용암면","월항면"],"안동시":["남후면","녹전면","도산면","북후면","서후면","예안면","와룡면","임동면","임하면","일직면","풍산읍","풍천면"],"영덕군":["강구면","남정면","달산면","병곡면","영덕읍","영해면","지품면","창수면"],"영양군":["수비면","영양읍","일월면","청기면"],"영주시":["단산면","문수면","봉현면","부석면","순흥면","안정면","이산면","장수면","평은면","풍기읍"],"영천시":["고경면","금호읍","북안면","신녕면","임고면","자양면","청통면","화남면","화북면"],"예천군":["개포면","보문면","예천읍","용궁면","유천면","은풍면","지보면","풍양면","호명면","효자면"],"울릉군":["북면","서면","울릉읍"],"울진군":["근남면","금강송면","기성면","매화면","북면","온정면","울진읍","죽변면","평해읍"],"의성군":["가음면","구천면","금성면","단밀면","단북면","단촌면","봉양면","비안면","사곡면","안계면","안평면","안사면","의성읍","점곡면","춘산면"],"청도군":["각북면","각남면","금천면","매전면","운문면","이서면","청도읍","풍각면"],"청송군":["부남면","부동면","진보면","청송읍","파천면","현동면","현서면"],"칠곡군":["가산면","기산면","동명면","북삼읍","석적읍","약목면","왜관읍"],"포항시 남구":["구룡포읍","동해면","대송면","오천읍","장기면","호미곶면"],"포항시 북구":["기계면","기북면","신광면","죽장면","청하면","흥해읍"]},"경상남도":{"거제시":["거제면","남부면","동부면","둔덕면","사등면","연초면","장목면","장승포동","일운면"],"거창군":["거창읍","가조면","고제면","남상면","남하면","마리면","북상면","신원면","웅양면","위천면","주상면"],"고성군":["고성읍","개천면","구만면","남해면","대가면","동해면","마암면","삼산면","상리면","하이면","하일면"],"김해시":["가락면","대동면","상동면","생림면","진례면","진영읍","한림면","장유면"],"남해군":["고현면","남면","남해읍","미조면","삼동면","서면","설천면","이동면","창선면"],"밀양시":["가곡면","단장면","무안면","밀양동","부북면","산내면","산외면","상남면","상동면","초동면","청도면","하남읍"],"사천시":["곤명면","곤양면","사남면","사천읍","서포면","용현면","정동면","축동면"],"산청군":["단성면","금서면","생초면","시천면","신등면","삼장면","산청읍","오부면","차황면"],"양산시":["동면","물금읍","상북면","서창동","웅상읍","원동면","하북면"],"의령군":["가례면","궁류면","낙서면","대의면","부림면","용덕면","의령읍","자굴산면","지정면","칠곡면"],"진주시":["가좌동","금곡면","금산면","나동면","내동면","대평면","명석면","미천면","반성면","사봉면","수곡면","이반성면","일반성면","집현면"],"창녕군":["계성면","고암면","대지면","도천면","부곡면","성산면","영산면","유어면","이방면","장마면","창녕읍"],"창원시 마산합포구":["가포동","구산면","내서읍","반동","산호동","월영동"],"창원시 마산회원구":["내서읍","봉암동","석전동","양덕동","회성동"],"창원시 성산구":["귀산동","대방동","반지동","사화동","상복동","신촌동","안민동","용지동","웅남동","천선동"],"창원시 의창구":["대산면","동면","북면","사림동","소계동","신월동","팔용동"],"창원시 진해구":["경화동","대장동","남문동","마천동","석동","소사동","여좌동","이동"],"통영시":["광도면","도산면","도남동","사량면","산양읍","욕지면","용남면"],"하동군":["고전면","금남면","금성면","북천면","악양면","양보면","옥종면","적량면","진교면","청암면","하동읍","화개면"],"함안군":["가야읍","군북면","대산면","법수면","산인면","여항면","칠북면","칠서면","칠원읍"],"함양군":["마천면","병곡면","서하면","서상면","수동면","안의면","지곡면","함양읍","휴천면"],"합천군":["가야면","가회면","대병면","대양면","덕곡면","봉산면","삼가면","쌍백면","쌍책면","야로면","용주면","율곡면","적중면","청덕면","초계면","합천읍"]},"제주특별자치도":{"서귀포시":["강정동","대정읍","동홍동","법환동","남원읍","보목동","색달동","서귀동","서홍동","성산읍","송산동","안덕면","영천동","월평동","중문동","표선면","호근동"],"제주시":["건입동","구좌읍","노형동","도두동","도련동","봉개동","삼도동","삼양동","애월읍","연동","오라동","외도동","용담동","우도면","이도동","이호동","일도동","조천읍","추자면","한경면","한림읍","화북동","회천동"]}};
+
+
+// ── 상품 초기 데이터 ──
+var PRODUCT_LIST = [
+  {name:'신고 9과',  price:50000, delivery:4000, stock:999, visible:true},
+  {name:'신고 10과', price:45000, delivery:4000, stock:999, visible:true},
+  {name:'신고 11과', price:40000, delivery:4000, stock:999, visible:true},
+  {name:'신고 12과', price:35000, delivery:4000, stock:999, visible:true},
+  {name:'신고 13과', price:30000, delivery:4000, stock:999, visible:true}
+];
+var PRICE_MAP = {};
+var DELIVERY = 4000;
+function rebuildPriceMap() {
+  PRICE_MAP = {};
+  PRODUCT_LIST.forEach(function(p){ PRICE_MAP[p.name] = p.price; });
+  if(PRODUCT_LIST.length > 0) DELIVERY = PRODUCT_LIST[0].delivery || 4000;
+}
+rebuildPriceMap();
+
+// ── 상품 목록 동적 로드 ──
+function loadProductsForOrder() {
+  fetch(SCRIPT_URL + '?action=getproducts&t=' + Date.now())
+    .then(function(r){ return r.json(); })
+    .then(function(data){
+      if(data.result === 'ok' && data.products && data.products.length > 0) {
+        PRODUCT_LIST = data.products.filter(function(p){ return p.visible !== false; });
+        rebuildPriceMap();
+        // 이미 열린 받는사람 드롭다운들 갱신
+        document.querySelectorAll('select.prod-select').forEach(function(sel) {
+          var curVal = sel.value;
+          var key = sel.id.replace('ps-','');
+          sel.innerHTML = '<option value="">상품을 선택해 주세요</option>'
+            + buildProductOptions()
+            + '<option value="custom">직접 입력</option>';
+          sel.value = curVal; // 선택값 유지
+        });
+      }
+    })
+    .catch(function(){ /* 실패시 기본값 사용 */ });
+}
+
+// 상품 옵션 HTML 생성
+function buildProductOptions() {
+  return PRODUCT_LIST
+    .filter(function(p){ return p.visible !== false && p.stock > 0; })
+    .map(function(p){
+      var label = p.name + (p.stock <= 10 ? ' (재고 '+p.stock+'박스)' : '');
+      return '<option value="' + p.name + '">' + label + '</option>';
+    }).join('');
+}
+
+// ── 주소 유틸 ──
+var AS = {};
+function iA(p) { AS[p] = {si:'',sg:'',eu:'',open:false}; }
+
+function togA(p) {
+  var st = AS[p]; st.open = !st.open;
+  document.getElementById(p+'-panel').classList.toggle('open', st.open);
+  if (st.open && !document.getElementById(p+'-si').children.length) bSi(p);
+}
+function bSi(p) {
+  var c = document.getElementById(p+'-si'); c.innerHTML = '';
+  Object.keys(DB).forEach(function(k) {
+    var b = document.createElement('button'); b.type='button'; b.className='ach'; b.textContent=k;
+    b.onclick = function() { sSi(p,k,b); }; c.appendChild(b);
+  });
+}
+function sSi(p,v,btn) {
+  AS[p].si=v; AS[p].sg=''; AS[p].eu='';
+  document.getElementById(p+'-si').querySelectorAll('.ach').forEach(function(b){b.classList.toggle('sel',b===btn);});
+  document.getElementById(p+'-sg-wrap').style.display='block';
+  document.getElementById(p+'-eu-wrap').style.display='none';
+  var sc = document.getElementById(p+'-sg'); sc.innerHTML='';
+  Object.keys(DB[v]).forEach(function(k) {
+    var b = document.createElement('button'); b.type='button'; b.className='ach'; b.textContent=k;
+    b.onclick = function() { sSg(p,v,k,b); }; sc.appendChild(b);
+  });
+  uD(p);
+}
+function sSg(p,si,v,btn) {
+  AS[p].sg=v; AS[p].eu='';
+  document.getElementById(p+'-sg').querySelectorAll('.ach').forEach(function(b){b.classList.toggle('sel',b===btn);});
+  document.getElementById(p+'-eu-wrap').style.display='block';
+  var ec = document.getElementById(p+'-eu'); ec.innerHTML='';
+  DB[si][v].forEach(function(k) {
+    var b = document.createElement('button'); b.type='button'; b.className='ach'; b.textContent=k;
+    b.onclick = function() { sEu(p,k,b); }; ec.appendChild(b);
+  });
+  uD(p);
+}
+function sEu(p,v,btn) {
+  AS[p].eu=v;
+  document.getElementById(p+'-eu').querySelectorAll('.ach').forEach(function(b){b.classList.toggle('sel',b===btn);});
+  AS[p].open=false;
+  document.getElementById(p+'-panel').classList.remove('open');
+  document.getElementById(p+'-detail-wrap').style.display='block';
+  uD(p);
+}
+function uD(p) {
+  var st=AS[p]; if(!st)return;
+  var btn=document.getElementById(p+'-btn');
+  var txt=document.getElementById(p+'-txt');
+  if(!btn||!txt)return;
+  var parts=[st.si,st.sg,st.eu].filter(Boolean);
+  if(parts.length){ btn.classList.remove('empty'); txt.textContent=parts.join(' '); }
+  else { btn.classList.add('empty'); txt.textContent='주소를 선택해 주세요 (여기 클릭)'; }
+}
+function aOk(p) { return !!(AS[p]&&AS[p].si&&AS[p].sg&&AS[p].eu); }
+function gA(p) {
+  var st=AS[p]||{};
+  var dtEl=document.getElementById(p+'-dt');
+  var dt=dtEl?dtEl.value.trim():'';
+  return [st.si,st.sg,st.eu,dt].filter(Boolean).join(' ');
+}
+function initAddrWidget(p) {
+  iA(p);
+  var btn=document.getElementById(p+'-btn');
+  if(btn) btn.onclick=function(){togA(p);};
+  bSi(p);
+}
+
+// ── 전화 하이픈 ──
+function aHy(el) {
+  if(!el)return;
+  el.addEventListener('input',function(){
+    var v=this.value.replace(/\D/g,'');
+    if(v.length<=3)this.value=v;
+    else if(v.length<=7)this.value=v.slice(0,3)+'-'+v.slice(3);
+    else this.value=v.slice(0,3)+'-'+v.slice(3,7)+'-'+v.slice(7,11);
+  });
+}
+
+// 상품은 드롭다운으로 변경됨
+
+// ── 받는사람 서브 블록 렌더 ──
+// rcptData[oid] = [rid1, rid2, ...]
+var rcptData = {};
+var rcptCount = 0;
+
+function addRcpt(oid) {
+  rcptCount++;
+  var rid = rcptCount;
+  if(!rcptData[oid]) rcptData[oid]=[];
+  rcptData[oid].push(rid);
+  renderRcpts(oid);
+}
+
+function delRcpt(oid, rid) {
+  rcptData[oid] = rcptData[oid].filter(function(x){return x!==rid;});
+  renderRcpts(oid);
+}
+
+function renderRcpts(oid) {
+  var container = document.getElementById('rcpt-list-'+oid);
+  if(!container) return;
+  container.innerHTML = '';
+  var rids = rcptData[oid]||[];
+
+  rids.forEach(function(rid, ridx) {
+    var rnum = ridx+1;
+    var key = oid+'_'+rid;
+    var div = document.createElement('div');
+    div.className='rcpt-block';
+    div.id='rcpt-'+key;
+    var delBtn = rids.length>1
+      ? '<button type="button" class="bdel-sm" onclick="delRcpt('+oid+','+rid+')">✕</button>'
+      : '';
+    div.innerHTML=
+      '<div class="rcpt-hd">'
+        +'<div class="rcpt-hd-left">'
+          +'<div class="rcpt-badge">'+rnum+'</div>'
+          +'<div class="rcpt-title">받는 사람 '+rnum+'</div>'
+        +'</div>'
+        +delBtn
+      +'</div>'
+      +'<div class="rcpt-body">'
+        +'<div class="f" id="frn-'+key+'"><div class="fl">성명 <span class="req"></span></div>'
+          +'<input type="text" id="rn-'+key+'" placeholder="홍길동" maxlength="20">'
+          +'<div class="em">성명을 입력해 주세요.</div>'
+        +'</div>'
+        +'<div class="divr"></div>'
+        +'<div class="f" id="frp-'+key+'"><div class="fl">연락처 <span class="req"></span></div>'
+          +'<input type="tel" id="rp-'+key+'" placeholder="010-0000-0000" maxlength="13" inputmode="numeric">'
+          +'<div class="em">연락처를 입력해 주세요.</div>'
+        +'</div>'
+        +'<div class="divr"></div>'
+        +'<div class="f" id="fra-'+key+'"><div class="fl">주소 <span class="req"></span></div>'
+          +'<button type="button" class="addr-btn empty" id="r'+key+'-btn">'
+            +'<span class="addr-btn-icon">📍</span>'
+            +'<span class="addr-btn-txt" id="r'+key+'-txt">주소를 선택해 주세요 (여기 클릭)</span>'
+            +'<span class="addr-btn-arr">▼</span>'
+          +'</button>'
+          +'<div class="addr-panel" id="r'+key+'-panel">'
+            +'<div class="addr-step"><div class="addr-step-lbl">시 / 도</div><div class="addr-chips" id="r'+key+'-si"></div></div>'
+            +'<div class="addr-step" id="r'+key+'-sg-wrap" style="display:none"><div class="addr-step-lbl">시 / 군 / 구</div><div class="addr-chips" id="r'+key+'-sg"></div></div>'
+            +'<div class="addr-step" id="r'+key+'-eu-wrap" style="display:none"><div class="addr-step-lbl">읍 / 면 / 동</div><div class="addr-chips" id="r'+key+'-eu"></div></div>'
+          +'</div>'
+          +'<div class="addr-detail" id="r'+key+'-detail-wrap" style="display:none">'
+            +'<input type="text" id="r'+key+'-dt" placeholder="상세 주소 (동·호수 등)">'
+          +'</div>'
+          +'<div class="em">주소를 선택해 주세요 (여기 클릭).</div>'
+        +'</div>'
+        +'<div class="divr"></div>'
+        +'<div class="f" id="frpr-'+key+'"><div class="fl">상품 <span class="req"></span></div>'
+          +'<select class="prod-select" id="ps-'+key+'" onchange="onProdChange(this,\''+key+'\')">'
+          +'<option value="">상품을 선택해 주세요</option>'
+          +buildProductOptions()
+          +'<option value="custom">직접 입력</option>'
+          +'</select>'
+          +'<div class="cuf" id="cuf-'+key+'">'
+            +'<input type="text" id="cu-'+key+'" placeholder="상품명 직접 입력" maxlength="50" '
+            +'style="width:100%;padding:11px 13px;border:1px solid #D8CEC0;border-radius:10px;font-size:14px;font-family:inherit;outline:none;background:#FAF8F4;">'
+          +'</div>'
+          +'<div class="qty-row">'
+            +'<span class="qty-label">수량</span>'
+            +'<div class="qty-ctrl">'
+              +'<button type="button" class="qty-btn" onclick="qtyChange(\''+key+'\', -1)">−</button>'
+              +'<input type="number" class="qty-input" id="qty-'+key+'" value="1" min="1" max="99" readonly>'
+              +'<button type="button" class="qty-btn" onclick="qtyChange(\''+key+'\', 1)">＋</button>'
+            +'</div>'
+            +'<span style="font-size:12px;color:#9A8870;">박스</span>'
+          +'</div>'
+          +'<div class="em">상품을 선택해 주세요.</div>'
+        +'</div>'
+      +'</div>';
+    container.appendChild(div);
+    initAddrWidget('r'+key);
+    aHy(document.getElementById('rp-'+key));
+  });
+}
+
+// ── 주문 블록 ──
+var orderCount=0, orderIds=[];
+
+function addOrder() {
+  orderCount++;
+  var oid=orderCount;
+  orderIds.push(oid);
+  rcptData[oid]=[];
+  renderOrders();
+}
+
+function delOrder(oid) {
+  orderIds=orderIds.filter(function(x){return x!==oid;});
+  delete rcptData[oid];
+  renderOrders();
+}
+
+function renderOrders() {
+  var container=document.getElementById('order-list');
+  container.innerHTML='';
+  orderIds.forEach(function(oid,idx){
+    var num=idx+1;
+    var wrap=document.createElement('div');
+    wrap.className='order-block';
+    wrap.id='order-'+oid;
+    wrap.innerHTML=
+      '<div class="order-hd">'
+        +'<div class="order-hd-left">'
+          +'<div class="order-badge">'+num+'</div>'
+          +'<div class="order-title">주문 '+num+'</div>'
+        +'</div>'
+        +(orderIds.length>1?'<button type="button" class="bdel" onclick="delOrder('+oid+')">✕ 삭제</button>':'')
+      +'</div>'
+      +'<div class="order-body">'
+        // 보내는 사람
+        +'<div class="order-section-label"><span class="arrow-icon">▶</span> 보내는 사람</div>'
+        +'<div class="f"><div class="fl">성명 <span class="opt">미입력 시 "주문자"로 표기</span></div>'
+          +'<input type="text" id="sn-'+oid+'" placeholder="홍길동" maxlength="20" autocomplete="name">'
+        +'</div>'
+        +'<div class="divr"></div>'
+        +'<div class="f" id="fsp-'+oid+'"><div class="fl">연락처 <span class="req"></span></div>'
+          +'<input type="tel" id="sp-'+oid+'" placeholder="010-0000-0000" maxlength="13" inputmode="numeric">'
+          +'<div class="em">연락처를 입력해 주세요.</div>'
+        +'</div>'
+        +'<div class="divr"></div>'
+        +'<div class="f" id="fsa-'+oid+'"><div class="fl">주소 <span class="req"></span></div>'
+          +'<button type="button" class="addr-btn empty" id="s'+oid+'-btn">'
+            +'<span class="addr-btn-icon">📍</span>'
+            +'<span class="addr-btn-txt" id="s'+oid+'-txt">주소를 선택해 주세요 (여기 클릭)</span>'
+            +'<span class="addr-btn-arr">▼</span>'
+          +'</button>'
+          +'<div class="addr-panel" id="s'+oid+'-panel">'
+            +'<div class="addr-step"><div class="addr-step-lbl">시 / 도</div><div class="addr-chips" id="s'+oid+'-si"></div></div>'
+            +'<div class="addr-step" id="s'+oid+'-sg-wrap" style="display:none"><div class="addr-step-lbl">시 / 군 / 구</div><div class="addr-chips" id="s'+oid+'-sg"></div></div>'
+            +'<div class="addr-step" id="s'+oid+'-eu-wrap" style="display:none"><div class="addr-step-lbl">읍 / 면 / 동</div><div class="addr-chips" id="s'+oid+'-eu"></div></div>'
+          +'</div>'
+          +'<div class="addr-detail" id="s'+oid+'-detail-wrap" style="display:none">'
+            +'<input type="text" id="s'+oid+'-dt" placeholder="상세 주소 (동·호수 등)">'
+          +'</div>'
+          +'<div class="em">주소를 선택해 주세요 (여기 클릭).</div>'
+        +'</div>'
+        // 받는 사람 구분선 + 목록
+        +'<div class="order-divider"><span>↓ 배송지</span></div>'
+        +'<div class="order-section-label"><span class="arrow-icon">▶</span> 받는 사람</div>'
+        +'<div id="rcpt-list-'+oid+'"></div>'
+        +'<button type="button" class="badd-rcpt" onclick="addRcpt('+oid+')">'
+          +'＋ 받는 사람 추가'
+        +'</button>'
+      +'</div>';
+    container.appendChild(wrap);
+    initAddrWidget('s'+oid);
+    aHy(document.getElementById('sp-'+oid));
+
+    // 받는사람 첫 1명 자동 추가 (없을 때만)
+    if(!rcptData[oid]||rcptData[oid].length===0) addRcpt(oid);
+    else renderRcpts(oid);
+  });
+}
+
+// ── 유효성 검사 ──
+function sErr(id,on){var el=document.getElementById(id);if(el)el.classList.toggle('err',on);}
+function phOk(v){return v&&v.replace(/\D/g,'').length>=9;}
+
+function vStep(n){
+  if(n===1){
+    if(!orderIds.length){alert('주문을 1건 이상 추가해 주세요.');return false;}
+    var ok=true;
+    orderIds.forEach(function(oid){
+      // 보내는 사람 연락처
+      var spv=(document.getElementById('sp-'+oid)||{}).value||'';
+      sErr('fsp-'+oid,!phOk(spv));
+      if(!phOk(spv)) ok=false;
+      // 보내는 사람 주소
+      if(!aOk('s'+oid)){sErr('fsa-'+oid,true);ok=false;}
+      else sErr('fsa-'+oid,false);
+
+      // 받는 사람 각각 검사
+      var rids=rcptData[oid]||[];
+      rids.forEach(function(rid){
+        var key=oid+'_'+rid;
+        var rn=((document.getElementById('rn-'+key)||{}).value||'').trim();
+        sErr('frn-'+key,!rn); if(!rn) ok=false;
+        var rpv=(document.getElementById('rp-'+key)||{}).value||'';
+        sErr('frp-'+key,!phOk(rpv)); if(!phOk(rpv)) ok=false;
+        if(!aOk('r'+key)){sErr('fra-'+key,true);ok=false;}
+        else sErr('fra-'+key,false);
+        var psv=(document.getElementById('ps-'+key)||{}).value||'';
+        var isCust=psv==='custom';
+        var cu=((document.getElementById('cu-'+key)||{}).value||'').trim();
+        var pb=!psv||(isCust&&!cu);
+        sErr('frpr-'+key,pb); if(pb) ok=false;
+      });
+    });
+    if(!ok){
+      var fe=document.querySelector('.err');
+      if(fe) fe.scrollIntoView({behavior:'smooth',block:'center'});
+    }
+    return ok;
+  }
+  return true;
+}
+
+// ── 스텝 네비 ──
+var cur=1;
+function gs(n){
+  document.querySelectorAll('.page').forEach(function(p,i){p.classList.toggle('act',i+1===n);});
+  document.querySelectorAll('.sb').forEach(function(b,i){
+    b.classList.toggle('act',i+1===n);
+    b.classList.toggle('done',i+1<n);
+  });
+  cur=n; if(n===3)bldSum(); window.scrollTo(0,0);
+}
+function ns(n){if(vStep(n))gs(n+1);}
+
+// ── 날짜 ──
+var todayStr=(function(){var d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');})();
+document.getElementById('ddate').min=todayStr;
+function setd(d,el){
+  var dt=new Date(); dt.setDate(dt.getDate()+d);
+  document.getElementById('ddate').value=dt.getFullYear()+'-'+String(dt.getMonth()+1).padStart(2,'0')+'-'+String(dt.getDate()).padStart(2,'0');
+  document.querySelectorAll('.chip').forEach(function(c){c.classList.remove('on');});
+  el.classList.add('on');
+}
+
+// ── 요약 ──
+function bldSum(){
+  var dd=document.getElementById('ddate').value||'';
+  var mm=(document.getElementById('memo').value||'').trim();
+  var h='';
+  orderIds.forEach(function(oid,idx){
+    var sn=((document.getElementById('sn-'+oid)||{}).value||'').trim()||'주문자';
+    var sp=(document.getElementById('sp-'+oid)||{}).value||'';
+    var sa=gA('s'+oid);
+    h+='<div class="sumblk">'
+      +'<div class="sumhd">주문 '+(idx+1)+'</div>'
+      +'<div class="sum-section">보내는 사람</div>'
+      +'<div class="sumr"><span class="sumk">성명</span><span class="sumv">'+sn+'</span></div>'
+      +'<div class="sumr"><span class="sumk">연락처</span><span class="sumv">'+sp+'</span></div>'
+      +'<div class="sumr"><span class="sumk">주소</span><span class="sumv">'+sa+'</span></div>';
+    var rids=rcptData[oid]||[];
+    rids.forEach(function(rid,ridx){
+      var key=oid+'_'+rid;
+      var rn=((document.getElementById('rn-'+key)||{}).value||'').trim();
+      var rp=(document.getElementById('rp-'+key)||{}).value||'';
+      var ra=gA('r'+key);
+      var psv=(document.getElementById('ps-'+key)||{}).value||'';
+      var isCust=psv==='custom';
+      var prodName=isCust?((document.getElementById('cu-'+key)||{}).value||'').trim():psv;
+      var qty=(document.getElementById('qty-'+key)||{}).value||'1';
+      var prod=prodName?(prodName+' '+qty+'박스'):'';
+      h+='<div class="sum-section">받는 사람 '+(ridx+1)+'</div>'
+        +'<div class="sumr"><span class="sumk">성명</span><span class="sumv">'+rn+'</span></div>'
+        +'<div class="sumr"><span class="sumk">연락처</span><span class="sumv">'+rp+'</span></div>'
+        +'<div class="sumr"><span class="sumk">주소</span><span class="sumv">'+ra+'</span></div>'
+        +'<div class="sumr"><span class="sumk">상품</span><span class="sumv">'+prod+'</span></div>';
+    });
+    h+='</div>';
+  });
+  h+='<div class="sumblk"><div class="sumhd">배송 · 요청사항</div>'
+    +'<div class="sumr"><span class="sumk">배송 희망일</span><span class="sumv">'+(dd||'미지정 (최대한 빠르게)')+'</span></div>'
+    +'<div class="sumr"><span class="sumk">요청사항</span><span class="sumv">'+(mm||'없음')+'</span></div></div>';
+  document.getElementById('suma').innerHTML=h;
+}
+
+function sub(){
+  // ── 데이터 수집 ──
+  var now = new Date();
+  var pad = function(n){return String(n).padStart(2,'0');};
+  var submittedAt = now.getFullYear()+'-'+pad(now.getMonth()+1)+'-'+pad(now.getDate())
+    +' '+pad(now.getHours())+':'+pad(now.getMinutes())+':'+pad(now.getSeconds());
+  var orderNo = 'ORD-'+now.getTime();
+  var dd = document.getElementById('ddate').value||'미지정';
+  var mm = (document.getElementById('memo').value||'').trim()||'없음';
+
+  var payload = {orders:[], deliveryDate:dd, memo:mm, submittedAt:submittedAt, orderNo:orderNo};
+
+  orderIds.forEach(function(oid, idx){
+    var sn = ((document.getElementById('sn-'+oid)||{}).value||'').trim()||'주문자';
+    var sp = (document.getElementById('sp-'+oid)||{}).value||'';
+    var sa = gA('s'+oid);
+    var rids = rcptData[oid]||[];
+    var recipients = [];
+    rids.forEach(function(rid){
+      var key = oid+'_'+rid;
+      var rn = ((document.getElementById('rn-'+key)||{}).value||'').trim();
+      var rp = (document.getElementById('rp-'+key)||{}).value||'';
+      var ra = gA('r'+key);
+      // 드롭다운 방식으로 상품 추출
+      var psEl = document.getElementById('ps-'+key);
+      var psv = psEl ? psEl.value : '';
+      var isCust = psv === 'custom';
+      var prodName = isCust
+        ? ((document.getElementById('cu-'+key)||{}).value||'').trim()
+        : psv;
+      var qtyEl = document.getElementById('qty-'+key);
+      var qty = qtyEl ? (parseInt(qtyEl.value)||1) : 1;
+      var prod = prodName ? (prodName + ' ' + qty + '박스') : '';
+      recipients.push({name:rn, phone:rp, addr:ra, product:prod});
+    });
+    payload.orders.push({
+      orderIndex: idx+1,
+      senderName: sn,
+      senderPhone: sp,
+      senderAddr: sa,
+      recipients: recipients
+    });
+  });
+
+  // ── 전송 버튼 로딩 표시 ──
+  var submitBtn = document.querySelector('.bfwd.gold');
+  if(submitBtn){
+    submitBtn.disabled = true;
+    submitBtn.textContent = '전송 중...';
+  }
+
+  // ── Google Sheets 전송 ──
+  fetch('https://script.google.com/macros/s/AKfycbwFD3uRB8Da8DaLU2KHvGgyn4jrhaf6XFKXbmMMJpCf_n4eA9avi6KEeRs6InmxIcvpCg/exec', {
+    method: 'POST',
+    mode: 'no-cors',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify(payload)
+  }).then(function(){
+    gs(4);
+    if(submitBtn){submitBtn.disabled=false;submitBtn.innerHTML='🍐 주문서 제출하기';}
+  }).catch(function(err){
+    console.error(err);
+    // 전송 실패해도 완료 페이지로 이동 (no-cors라 오류 구분 어려움)
+    gs(4);
+    if(submitBtn){submitBtn.disabled=false;submitBtn.innerHTML='🍐 주문서 제출하기';}
+  });
+}
+function rst(){
+  document.getElementById('ddate').value='';
+  document.getElementById('memo').value='';
+  document.querySelectorAll('.chip').forEach(function(c){c.classList.remove('on');});
+  orderIds=[]; orderCount=0; rcptData={}; rcptCount=0;
+  renderOrders(); gs(1);
+}
+
+
+// ── 주소 복사 ──
+function copyAddr(){
+  var addr = '경기 남양주시 별내면 광전리 269-2';
+  if(navigator.clipboard && window.isSecureContext){
+    navigator.clipboard.writeText(addr).then(function(){
+      showCopied();
+    }).catch(function(){
+      fallbackCopy(addr);
+    });
+  } else {
+    fallbackCopy(addr);
+  }
+}
+function fallbackCopy(text){
+  var ta = document.createElement('textarea');
+  ta.value = text;
+  ta.style.position='fixed';ta.style.opacity='0';
+  document.body.appendChild(ta);
+  ta.focus();ta.select();
+  try{ document.execCommand('copy'); showCopied(); }catch(e){}
+  document.body.removeChild(ta);
+}
+function showCopied(){
+  var btn = document.getElementById('copyAddrBtn');
+  if(!btn)return;
+  btn.classList.add('copied');
+  btn.innerHTML='<span class="copy-icon">✓</span>복사됨';
+  setTimeout(function(){
+    btn.classList.remove('copied');
+    btn.innerHTML='<span class="copy-icon">📋</span>복사';
+  }, 2000);
+}
+
+
+// ── 수량 조절 ──
+var _qtyModalKey = '';    // 현재 팝업 대상 key
+var _qtyConfirmed = {};   // 확인된 key 목록 (맞아요 클릭한 경우)
+
+function qtyChange(key, delta) {
+  var input = document.getElementById('qty-'+key);
+  if(!input) return;
+  var cur = parseInt(input.value)||1;
+  var next = Math.max(1, Math.min(999, cur + delta));
+  input.value = next;
+  // 맞아요를 이미 클릭한 key는 팝업 안 뜸
+  if(next >= 2 && !_qtyConfirmed[key]) {
+    var rname = ((document.getElementById('rn-'+key)||{}).value||'').trim();
+    _qtyModalKey = key;
+    showQtyModal(rname, next);
+  }
+}
+
+// ── 상품 드롭다운 변경 ──
+function onProdChange(sel, key) {
+  var cuf = document.getElementById('cuf-'+key);
+  if(!cuf) return;
+  if(sel.value === 'custom') {
+    cuf.classList.add('show');
+  } else {
+    cuf.classList.remove('show');
+    var cu = document.getElementById('cu-'+key);
+    if(cu) cu.value = '';
+  }
+}
+
+// ── 수량 팝업 ──
+function showQtyModal(name, qty) {
+  var title = document.getElementById('qtyModalTitle');
+  var nameStr = name ? name+'님에게' : '이 받는 분에게';
+  title.textContent = nameStr+' '+qty+'박스 이상을 보내시나요?';
+  document.getElementById('qtyModal').classList.add('show');
+}
+function closeQtyModal() {
+  document.getElementById('qtyModal').classList.remove('show');
+}
+
+// 맞아요 클릭: 팝업 닫고 이후 이 key는 팝업 안 띄움
+function qtyModalYes() {
+  if(_qtyModalKey) _qtyConfirmed[_qtyModalKey] = true;
+  closeQtyModal();
+}
+
+// 아니오 클릭: 수량 1로 되돌리고, 같은 주문의 받는사람 1명 추가
+function qtyModalNo() {
+  if(_qtyModalKey) {
+    var input = document.getElementById('qty-'+_qtyModalKey);
+    if(input) input.value = 1;
+    closeQtyModal();
+  }
+}
+
+
+// ── 인트로 페이지 ──
+function goSmallOrder() {
+  var overlay = document.getElementById('introOverlay');
+  overlay.classList.add('hide');
+  // transition 끝나면 DOM에서 제거
+  setTimeout(function(){ overlay.style.display = 'none'; }, 520);
+}
+
+function showBulkModal() {
+  document.getElementById('bulkModal').classList.add('show');
+}
+
+function closeBulkModal() {
+  document.getElementById('bulkModal').classList.remove('show');
+}
+
+function copyEmail() {
+  var email = 'santar7021@gmail.com';
+  var msg = document.getElementById('bulkCopyMsg');
+  if (navigator.clipboard && window.isSecureContext) {
+    navigator.clipboard.writeText(email).then(function(){
+      msg.textContent = '✓ 이메일 주소가 복사되었습니다';
+      setTimeout(function(){ msg.textContent = ''; }, 2500);
+    });
+  } else {
+    var ta = document.createElement('textarea');
+    ta.value = email;
+    ta.style.position = 'fixed'; ta.style.opacity = '0';
+    document.body.appendChild(ta);
+    ta.focus(); ta.select();
+    try { document.execCommand('copy');
+      msg.textContent = '✓ 이메일 주소가 복사되었습니다';
+      setTimeout(function(){ msg.textContent = ''; }, 2500);
+    } catch(e) {}
+    document.body.removeChild(ta);
+  }
+}
+
+// ── 초기 ──
+addOrder();
+loadProductsForOrder();
+
+</script>
+
+<!-- ── 수량 안내 팝업 ── -->
+<div class="qty-modal-overlay" id="qtyModal">
+  <div class="qty-modal">
+    <div class="qty-modal-icon">📦</div>
+    <div class="qty-modal-title" id="qtyModalTitle"></div>
+    <div class="qty-modal-desc">아니라면 받는 사람을<br>한 명 더 추가해 드릴게요.</div>
+    <div class="qty-modal-btns">
+      <button class="qty-modal-btn yes" onclick="qtyModalYes()">맞아요</button>
+      <button class="qty-modal-btn no" onclick="qtyModalNo()">아니오</button>
+    </div>
+  </div>
+</div>
+</div><!-- /.app -->
+</body>
+</html>
