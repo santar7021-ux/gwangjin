@@ -939,7 +939,7 @@ function fetchOrders(manual) {
   dot.className = 'status-dot checking';
   txt.textContent = '확인 중...';
 
-  fetch(SCRIPT_URL + '?action=list&t=' + Date.now())
+  fetch(SCRIPT_URL + '?action=list&t=' + Date.now(, {mode:'cors',credentials:'omit'}))
     .then(function(r){ return r.json(); })
     .then(function(data) {
       if (data.result !== 'ok') throw new Error(data.message);
@@ -1109,7 +1109,7 @@ function renderOrders() {
 function confirmOrder(row, btn) {
   btn.disabled = true;
   btn.textContent = '처리 중...';
-  fetch(SCRIPT_URL + '?action=confirm&row=' + row + '&t=' + Date.now())
+  fetch(SCRIPT_URL + '?action=confirm&row=' + row + '&t=' + Date.now(, {mode:'cors',credentials:'omit'}))
     .then(function(r){ return r.json(); })
     .then(function(data) {
       if (data.result === 'ok') {
@@ -1321,7 +1321,7 @@ function saveMemo(row) {
   });
 
   // Apps Script에도 저장 시도
-  fetch(SCRIPT_URL + '?action=saveMemo&row=' + row + '&memo=' + encodeURIComponent(memoVal) + '&t=' + Date.now())
+  fetch(SCRIPT_URL + '?action=saveMemo&row=' + row + '&memo=' + encodeURIComponent(memoVal, {mode:'cors',credentials:'omit'}) + '&t=' + Date.now())
     .catch(function(){}) // 실패해도 로컬은 저장됨
     .finally(function() {
       btn.disabled = false;
@@ -1447,7 +1447,7 @@ function loadProducts() {
   if(!listEl) return;
   listEl.innerHTML = '<div style="text-align:center;padding:20px;color:#9A8870;font-size:13px;">불러오는 중...</div>';
 
-  fetch(SCRIPT_URL + '?action=getproducts&t=' + Date.now())
+  fetch(SCRIPT_URL + '?action=getproducts&t=' + Date.now(, {mode:'cors',credentials:'omit'}))
     .then(function(r){ return r.json(); })
     .then(function(data){
       if(data.result !== 'ok') throw new Error(data.message);
@@ -1558,7 +1558,7 @@ function saveProducts() {
   var btn = document.querySelector('.btn-inv-save');
   if(btn) { btn.disabled = true; btn.textContent = '저장 중...'; }
 
-  fetch(SCRIPT_URL + '?action=saveproducts&data=' + encodeURIComponent(JSON.stringify(localProducts)) + '&t=' + Date.now())
+  fetch(SCRIPT_URL + '?action=saveproducts&data=' + encodeURIComponent(JSON.stringify(localProducts, {mode:'cors',credentials:'omit'})) + '&t=' + Date.now())
     .then(function(r){ return r.json(); })
     .then(function(data){
       if(data.result === 'ok') {

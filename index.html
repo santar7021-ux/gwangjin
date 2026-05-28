@@ -1182,7 +1182,7 @@ rebuildPriceMap();
 
 // ── 상품 목록 동적 로드 ──
 function loadProductsForOrder() {
-  fetch(SCRIPT_URL + '?action=getproducts&t=' + Date.now())
+  fetch(SCRIPT_URL + '?action=getproducts&t=' + Date.now(, {mode:'cors',credentials:'omit'}))
     .then(function(r){ return r.json(); })
     .then(function(data){
       if(data.result === 'ok' && data.products && data.products.length > 0) {
