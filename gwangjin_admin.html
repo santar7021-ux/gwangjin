@@ -832,6 +832,37 @@ html, body {
 
 <script>
 const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwFD3uRB8Da8DaLU2KHvGgyn4jrhaf6XFKXbmMMJpCf_n4eA9avi6KEeRs6InmxIcvpCg/exec';
+
+// ══════════════════════════════
+// JSONP 유틸 (CORS 우회)
+// ══════════════════════════════
+var _jsonpId = 0;
+function jsonp(url) {
+  return new Promise(function(resolve, reject) {
+    var cbName = '_jp_' + (++_jsonpId) + '_' + Date.now();
+    var timeout = setTimeout(function() {
+      delete window[cbName];
+      if(script.parentNode) script.parentNode.removeChild(script);
+      reject(new Error('JSONP timeout'));
+    }, 15000);
+    window[cbName] = function(data) {
+      clearTimeout(timeout);
+      delete window[cbName];
+      if(script.parentNode) script.parentNode.removeChild(script);
+      resolve(data);
+    };
+    var script = document.createElement('script');
+    script.src = url + (url.indexOf('?')>=0?'&':'?') + 'callback=' + cbName;
+    script.onerror = function() {
+      clearTimeout(timeout);
+      delete window[cbName];
+      if(script.parentNode) script.parentNode.removeChild(script);
+      reject(new Error('JSONP error'));
+    };
+    document.head.appendChild(script);
+  });
+}
+
 let allOrders = [];
 let knownOrderNos = new Set();
 let currentTab = 'all';
@@ -939,8 +970,7 @@ function fetchOrders(manual) {
   dot.className = 'status-dot checking';
   txt.textContent = '확인 중...';
 
-  fetch(SCRIPT_URL + '?action=list&t=' + Date.now(, {mode:'cors',credentials:'omit'}))
-    .then(function(r){ return r.json(); })
+  jsonp(SCRIPT_URL + '?action=list&t=' + Date.now())
     .then(function(data) {
       if (data.result !== 'ok') throw new Error(data.message);
 
@@ -1109,8 +1139,7 @@ function renderOrders() {
 function confirmOrder(row, btn) {
   btn.disabled = true;
   btn.textContent = '처리 중...';
-  fetch(SCRIPT_URL + '?action=confirm&row=' + row + '&t=' + Date.now(, {mode:'cors',credentials:'omit'}))
-    .then(function(r){ return r.json(); })
+  jsonp(SCRIPT_URL + '?action=confirm&row=' + row + '&t=' + Date.now())
     .then(function(data) {
       if (data.result === 'ok') {
         showToast('✓ 주문을 확인 완료 처리했어요');
@@ -1321,7 +1350,7 @@ function saveMemo(row) {
   });
 
   // Apps Script에도 저장 시도
-  fetch(SCRIPT_URL + '?action=saveMemo&row=' + row + '&memo=' + encodeURIComponent(memoVal, {mode:'cors',credentials:'omit'}) + '&t=' + Date.now())
+  jsonp(SCRIPT_URL + '?action=savememo&row=' + row + '&memo=' + encodeURIComponent(memoVal) + '&t=' + Date.now())
     .catch(function(){}) // 실패해도 로컬은 저장됨
     .finally(function() {
       btn.disabled = false;
@@ -1447,8 +1476,7 @@ function loadProducts() {
   if(!listEl) return;
   listEl.innerHTML = '<div style="text-align:center;padding:20px;color:#9A8870;font-size:13px;">불러오는 중...</div>';
 
-  fetch(SCRIPT_URL + '?action=getproducts&t=' + Date.now(, {mode:'cors',credentials:'omit'}))
-    .then(function(r){ return r.json(); })
+  jsonp(SCRIPT_URL + '?action=getproducts&t=' + Date.now())
     .then(function(data){
       if(data.result !== 'ok') throw new Error(data.message);
       localProducts = data.products || [];
@@ -1558,8 +1586,7 @@ function saveProducts() {
   var btn = document.querySelector('.btn-inv-save');
   if(btn) { btn.disabled = true; btn.textContent = '저장 중...'; }
 
-  fetch(SCRIPT_URL + '?action=saveproducts&data=' + encodeURIComponent(JSON.stringify(localProducts, {mode:'cors',credentials:'omit'})) + '&t=' + Date.now())
-    .then(function(r){ return r.json(); })
+  jsonp(SCRIPT_URL + '?action=saveproducts&data=' + encodeURIComponent(JSON.stringify(localProducts)) + '&t=' + Date.now())
     .then(function(data){
       if(data.result === 'ok') {
         showToast('✓ 상품 목록이 저장되었습니다!');
