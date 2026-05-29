@@ -526,21 +526,6 @@ html, body {
 }
 .btn-delete:hover{background:#FFF0F0;border-color:#C03020;}
 
-/* ── 상품 관리 버튼 ── */
-.statusbar-btns3{
-  display:flex;align-items:center;
-  padding:5px 14px 9px;
-  gap:6px;
-}
-.btn-prod-mgmt{
-  flex:1;padding:6px 10px;
-  border:1px solid rgba(106,144,80,.5);
-  color:#88B068;background:rgba(106,144,80,.1);
-  border-radius:8px;font-size:11px;font-weight:700;
-  cursor:pointer;font-family:inherit;transition:all .15s;
-  white-space:nowrap;text-align:center;
-}
-.btn-prod-mgmt:hover{background:rgba(106,144,80,.25);border-color:#88B068;}
 
 /* ── 상품 관리 모달 ── */
 .prod-mgmt-overlay{
@@ -856,10 +841,7 @@ html, body {
     <button class="btn-date-filter" id="btnDateFilter" onclick="toggleDatePanel()">📅 날짜 <span class="date-filter-badge" id="dateBadge">●</span></button>
     <button class="btn-refresh" onclick="fetchOrders(true)">↻ 새로고침</button>
   </div>
-  <!-- 셋째줄: 상품 관리 -->
-  <div class="statusbar-btns3">
-    <button class="btn-prod-mgmt" onclick="showProdMgmt()">⚙️ 상품 관리</button>
-  </div>
+
 </div>
 
 
@@ -1378,6 +1360,8 @@ function calcPrice(productStr) {
   var p = parseProduct(productStr);
   if (!p.name || !p.qty) return 0;
   var unitPrice = PRICE_MAP[p.name] || 0;
+  // 단가 없으면 택배비도 0 반환 (매출 집계에서 제외)
+  if (unitPrice === 0) return 0;
   return (unitPrice + DELIVERY) * p.qty;
 }
 

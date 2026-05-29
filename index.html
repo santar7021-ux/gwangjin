@@ -252,9 +252,9 @@ textarea{min-height:72px;resize:none;line-height:1.6;font-size:14px}
 
 /* ── 상품 그리드 ── */
 .prod-select{
-  width:100%;padding:11px 13px;
+  width:100%;padding:12px 32px 12px 13px;
   border:1px solid #D8CEC0;border-radius:10px;
-  font-size:14px;color:#2A1A0A;
+  font-size:15px;color:#2A1A0A;font-weight:500;
   background:#FAF8F4;
   font-family:inherit;
   outline:none;-webkit-appearance:none;appearance:none;
@@ -1291,7 +1291,14 @@ function buildProductOptions() {
   return PRODUCT_LIST
     .filter(function(p){ return p.visible !== false && p.stock > 0; })
     .map(function(p){
-      var label = p.name + (p.stock <= 10 ? ' (재고 '+p.stock+'박스)' : '');
+      var unitPrice = p.price || 0;
+      var delivery  = p.delivery || 4000;
+      // 단가가 있을 때만 합산 금액 표시, 없으면 빈칸
+      var priceStr = unitPrice > 0
+        ? '  ' + (unitPrice + delivery).toLocaleString() + '원'
+        : '';
+      var stockStr = (p.stock > 0 && p.stock <= 10) ? ' (재고 '+p.stock+'박스)' : '';
+      var label = p.name + priceStr + stockStr;
       return '<option value="' + p.name + '">' + label + '</option>';
     }).join('');
 }
