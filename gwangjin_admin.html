@@ -514,6 +514,15 @@ html, body {
   max-width: 480px !important;
   overflow-x: hidden !important;
 }
+
+/* ── 삭제 버튼 ── */
+.btn-delete{
+  padding:11px 14px;border:1.5px solid #DDA8A0;
+  border-radius:10px;background:#fff;color:#A02020;
+  font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;
+  transition:all .15s;white-space:nowrap;
+}
+.btn-delete:hover{background:#FFF0F0;border-color:#C03020;}
 </style>
 </head>
 <body>
@@ -894,11 +903,29 @@ document.addEventListener('click', initAudio, {once: true});
 
 // ── 음성 목록 미리 로드 (모바일 iOS 대응) ──
 if (window.speechSynthesis) {
+  // 즉시 로드 시도
   window.speechSynthesis.getVoices();
+  // 변경 이벤트 등록
   window.speechSynthesis.onvoiceschanged = function() {
-    window.speechSynthesis.getVoices();
+    var v = window.speechSynthesis.getVoices();
+    console.log('TTS 음성 목록 로드:', v.length, '개');
   };
 }
+// 사용자 터치 후 TTS 활성화 (모바일 보안 정책)
+var _ttsReady = false;
+function _initTTS() {
+  if(_ttsReady) return;
+  _ttsReady = true;
+  if(window.speechSynthesis) {
+    // 무음 발화로 TTS 엔진 활성화
+    var silent = new SpeechSynthesisUtterance(' ');
+    silent.volume = 0;
+    window.speechSynthesis.speak(silent);
+    console.log('TTS 활성화 완료');
+  }
+}
+document.addEventListener('click', _initTTS, {once: true});
+document.addEventListener('touchstart', _initTTS, {once: true});
 
 // ── 알림음 재생 ──
 function playAlert() {
@@ -925,26 +952,47 @@ function playAlert() {
 // ── 음성 안내 (TTS) ──
 function speakAlert(count) {
   try {
-    if (!window.speechSynthesis) return;
-    // 이전 음성 중단
+    if (!window.speechSynthesis) { console.log('TTS 미지원'); return; }
     window.speechSynthesis.cancel();
-    // 차임벨 후 0.8초 딜레이 후 음성 재생
-    setTimeout(function() {
-      var msg = new SpeechSynthesisUtterance();
-      msg.text = '새로운 주문이 ' + count + '건 들어왔습니다.';
+    var text = '새로운 주문이 ' + count + '건 들어왔습니다.';
+
+    function doSpeak() {
+      var msg = new SpeechSynthesisUtterance(text);
       msg.lang = 'ko-KR';
-      msg.rate = 0.92;   // 속도 (1.0 기본)
-      msg.pitch = 1.05;  // 음높이
-      msg.volume = 1.0;  // 볼륨
-      // 한국어 음성 우선 선택
+      msg.rate = 0.9;
+      msg.pitch = 1.0;
+      msg.volume = 1.0;
+
+      // 한국어 음성 찾기
       var voices = window.speechSynthesis.getVoices();
-      var koVoice = voices.find(function(v) {
-        return v.lang === 'ko-KR' || v.lang === 'ko_KR';
+      var koVoice = voices.find(function(v){
+        return v.lang && (v.lang.indexOf('ko') === 0);
       });
-      if (koVoice) msg.voice = koVoice;
+      if(koVoice) msg.voice = koVoice;
+
+      msg.onstart = function(){ console.log('TTS 시작'); };
+      msg.onerror = function(e){ console.log('TTS 오류:', e); };
+
       window.speechSynthesis.speak(msg);
-    }, 900);
-  } catch(e) { console.log('tts error', e); }
+    }
+
+    // 음성 목록이 로드됐는지 확인 후 실행
+    setTimeout(function(){
+      var voices = window.speechSynthesis.getVoices();
+      if(voices.length > 0) {
+        doSpeak();
+      } else {
+        // 음성 목록 로드 대기
+        window.speechSynthesis.onvoiceschanged = function(){
+          doSpeak();
+          window.speechSynthesis.onvoiceschanged = null;
+        };
+        // 2초 후에도 안되면 그냥 시도
+        setTimeout(doSpeak, 2000);
+      }
+    }, 500);
+
+  } catch(e) { console.log('TTS 오류:', e); }
 }
 
 // ── 브라우저 푸시 알림 ──
@@ -1147,6 +1195,7 @@ function renderOrders() {
           ? '<button class="btn-confirm" onclick="confirmOrder(' + o.row + ', this)">✓ 확인 완료</button>'
           : '<div class="btn-confirmed">✓ 확인됨' + (o.confirmedAt ? '<div class="confirmed-time">' + o.confirmedAt + '</div>' : '') + '</div>'
         ) +
+        '<button class="btn-delete" onclick="deleteOrder(' + o.row + ', \'' + (o.rcptName||'주문자') + '\', this)">🗑 삭제</button>' +
       '</div>' +
     '</div>';
     }); // grouped forEach
@@ -1635,6 +1684,33 @@ function saveProducts() {
     .catch(function(){ showToast('저장 실패 - 네트워크 오류'); })
     .finally(function(){
       if(btn){ btn.disabled = false; btn.textContent = '💾 변경사항 저장'; }
+    });
+}
+
+
+// ── 주문 삭제 ──
+function deleteOrder(row, name, btn) {
+  if(!confirm('"' + name + '" 주문을 삭제할까요?\n삭제 후 복구가 불가능합니다.')) return;
+  if(btn){ btn.disabled = true; btn.textContent = '삭제 중...'; }
+
+  var url = SCRIPT_URL + '?action=deleteorder&row=' + row + '&t=' + Date.now();
+  var doFetch = window.location.href.indexOf('script.google.com') >= 0
+    ? fetch(url).then(function(r){return r.json();})
+    : jsonp(url);
+
+  doFetch
+    .then(function(data){
+      if(data.result === 'ok'){
+        showToast('✓ 주문이 삭제되었습니다.');
+        fetchOrders(false);
+      } else {
+        showToast('삭제 실패: ' + (data.message||'오류'));
+        if(btn){ btn.disabled=false; btn.textContent='🗑 삭제'; }
+      }
+    })
+    .catch(function(){
+      showToast('삭제 실패 - 네트워크 오류');
+      if(btn){ btn.disabled=false; btn.textContent='🗑 삭제'; }
     });
 }
 
