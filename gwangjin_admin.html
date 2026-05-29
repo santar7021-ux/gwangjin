@@ -1233,8 +1233,10 @@ function buildSalesHTML() {
   var orderGroups = {};
 
   allOrders.forEach(function(o) {
+    if(!o.product || o.product === '-' || o.product === '') return;
     var p   = parseProduct(o.product);
     var amt = calcPrice(o.product);
+    if(!p.name || amt === 0) return;
     totalBoxes  += p.qty;
     totalAmount += amt;
 
@@ -1244,6 +1246,9 @@ function buildSalesHTML() {
     productMap[p.name].amount += amt;
 
     // 주문번호별 그룹
+    if(!o.product || o.product === '-' || o.product === '') return;
+    var p2 = parseProduct(o.product);
+    if(!p2.name || calcPrice(o.product) === 0) return;
     var grpKey = o.orderNo + '_' + o.orderIndex;
     if (!orderGroups[grpKey]) {
       orderGroups[grpKey] = {

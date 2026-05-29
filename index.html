@@ -1194,6 +1194,9 @@ function jsonp(url) {
   });
 }
 
+// ── Apps Script URL ──
+var SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwFD3uRB8Da8DaLU2KHvGgyn4jrhaf6XFKXbmMMJpCf_n4eA9avi6KEeRs6InmxIcvpCg/exec';
+
 // ── 상품 초기 데이터 ──
 var PRODUCT_LIST = [
   {name:'신고 9과',  price:50000, delivery:4000, stock:999, visible:true},
@@ -1658,20 +1661,22 @@ function sub(){
   }
 
   // ── Google Sheets 전송 ──
+  // no-cors 모드는 opaque response라 .then()이 불안정 → setTimeout으로 안전하게 처리
+  var _done = false;
+  function _goComplete(){
+    if(_done) return;
+    _done = true;
+    gs(4);
+    if(submitBtn){submitBtn.disabled=false;submitBtn.innerHTML='🍐 주문서 제출하기';}
+  }
+  // 3초 후 무조건 완료 (no-cors라 응답 확인 불가)
+  setTimeout(_goComplete, 3000);
   fetch(SCRIPT_URL, {
     method: 'POST',
     mode: 'no-cors',
     headers: {'Content-Type': 'application/json'},
     body: JSON.stringify(payload)
-  }).then(function(){
-    gs(4);
-    if(submitBtn){submitBtn.disabled=false;submitBtn.innerHTML='🍐 주문서 제출하기';}
-  }).catch(function(err){
-    console.error(err);
-    // 전송 실패해도 완료 페이지로 이동 (no-cors라 오류 구분 어려움)
-    gs(4);
-    if(submitBtn){submitBtn.disabled=false;submitBtn.innerHTML='🍐 주문서 제출하기';}
-  });
+  }).then(_goComplete).catch(_goComplete);
 }
 function rst(){
   document.getElementById('ddate').value='';
