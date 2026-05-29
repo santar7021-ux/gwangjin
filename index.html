@@ -638,6 +638,54 @@ html, body {
   max-width: 480px !important;
   overflow-x: hidden !important;
 }
+
+/* ── 주문 안내 팝업 ── */
+.guide-overlay{
+  display:none;position:fixed;inset:0;
+  background:rgba(0,0,0,.55);z-index:9600;
+  align-items:center;justify-content:center;padding:24px;
+}
+.guide-overlay.show{display:flex;}
+.guide-modal{
+  background:#fff;border-radius:18px;
+  padding:24px 20px 20px;max-width:min(340px,calc(100vw - 32px));
+  width:100%;box-shadow:0 8px 32px rgba(0,0,0,.2);
+}
+.guide-title{
+  font-size:15px;font-weight:800;color:#3B2A1A;
+  text-align:center;line-height:1.4;margin-bottom:16px;
+  padding-bottom:12px;border-bottom:1px solid #EDE5D8;
+}
+.guide-title span{color:#6A9050;}
+.guide-item{
+  background:#FAF8F4;border-radius:10px;
+  padding:12px 14px;margin-bottom:8px;
+}
+.guide-item:last-of-type{margin-bottom:16px;}
+.guide-num{
+  font-size:13px;font-weight:800;color:#3B2A1A;
+  margin-bottom:5px;
+}
+.guide-desc{
+  font-size:12px;color:#5A4830;line-height:1.6;
+  margin-bottom:5px;
+}
+.guide-arrow{
+  font-size:12px;color:#6A9050;font-weight:700;
+  display:flex;align-items:center;gap:4px;
+}
+.guide-tag{
+  display:inline-block;background:#EEF5E8;
+  border:1px solid rgba(106,144,80,.4);
+  color:#3B5A28;font-size:11px;font-weight:700;
+  padding:2px 8px;border-radius:6px;
+}
+.guide-ok-btn{
+  width:100%;padding:13px;border:none;border-radius:11px;
+  background:#3B2A1A;color:#fff;
+  font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;
+}
+.guide-ok-btn:hover{background:#4A3828;}
 </style>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -1781,9 +1829,13 @@ function qtyModalNo() {
 
 // ── 인트로 페이지 ──
 function goSmallOrder() {
+  // 안내 팝업 먼저 표시
+  document.getElementById('guideOverlay').classList.add('show');
+}
+function closeGuideAndGo() {
+  document.getElementById('guideOverlay').classList.remove('show');
   var overlay = document.getElementById('introOverlay');
   overlay.classList.add('hide');
-  // transition 끝나면 DOM에서 제거
   setTimeout(function(){ overlay.style.display = 'none'; }, 520);
 }
 
@@ -1836,5 +1888,25 @@ loadProductsForOrder();
   </div>
 </div>
 </div><!-- /.app -->
+
+<!-- ── 주문 안내 팝업 ── -->
+<div class="guide-overlay" id="guideOverlay">
+  <div class="guide-modal">
+    <div class="guide-title">
+      광진농원 택배 주문<br><span>작성 안내</span>
+    </div>
+    <div class="guide-item">
+      <div class="guide-num">① 보내는 사람 1명, 받는 사람 여러 명</div>
+      <div class="guide-desc">같은 분이 여러 곳으로 보내실 때</div>
+      <div class="guide-arrow">→ <span class="guide-tag">받는 사람 추가</span> 버튼을 이용해 주세요</div>
+    </div>
+    <div class="guide-item">
+      <div class="guide-num">② 보내는 사람 여럿, 받는 사람 여럿</div>
+      <div class="guide-desc">여러 분이 각각 보내실 때</div>
+      <div class="guide-arrow">→ <span class="guide-tag">주문 추가</span> 버튼을 이용해 주세요</div>
+    </div>
+    <button class="guide-ok-btn" onclick="closeGuideAndGo()">확인 · 주문 시작하기 🍐</button>
+  </div>
+</div>
 </body>
 </html>
