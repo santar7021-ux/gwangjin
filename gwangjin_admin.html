@@ -831,7 +831,16 @@ html, body {
 </div>
 
 <script>
-const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwFD3uRB8Da8DaLU2KHvGgyn4jrhaf6XFKXbmMMJpCf_n4eA9avi6KEeRs6InmxIcvpCg/exec';
+// SCRIPT_URL: Apps Script 서빙 시 자동 감지, GitHub Pages 시 하드코딩
+var SCRIPT_URL = (function(){
+  var loc = window.location.href;
+  // Apps Script에서 열린 경우 (script.google.com)
+  if(loc.indexOf('script.google.com') >= 0) {
+    return loc.split('?')[0].split('#')[0];
+  }
+  // GitHub Pages에서 열린 경우
+  return 'https://script.google.com/macros/s/AKfycbwFD3uRB8Da8DaLU2KHvGgyn4jrhaf6XFKXbmMMJpCf_n4eA9avi6KEeRs6InmxIcvpCg/exec';
+})();
 
 // ══════════════════════════════
 // JSONP 유틸 (CORS 우회)
@@ -970,7 +979,12 @@ function fetchOrders(manual) {
   dot.className = 'status-dot checking';
   txt.textContent = '확인 중...';
 
-  jsonp(SCRIPT_URL + '?action=list&t=' + Date.now())
+  // fetch 먼저 시도 (같은 도메인이면 바로 성공), 실패시 jsonp
+  var apiUrl = SCRIPT_URL + '?action=list&t=' + Date.now();
+  var doFetch = window.location.href.indexOf('script.google.com') >= 0
+    ? fetch(apiUrl).then(function(r){return r.json();})
+    : jsonp(apiUrl);
+  doFetch
     .then(function(data) {
       if (data.result !== 'ok') throw new Error(data.message);
 
@@ -1139,7 +1153,11 @@ function renderOrders() {
 function confirmOrder(row, btn) {
   btn.disabled = true;
   btn.textContent = '처리 중...';
-  jsonp(SCRIPT_URL + '?action=confirm&row=' + row + '&t=' + Date.now())
+  var _cUrl = SCRIPT_URL + '?action=confirm&row=' + row + '&t=' + Date.now();
+  var _cFetch = window.location.href.indexOf('script.google.com') >= 0
+    ? fetch(_cUrl).then(function(r){return r.json();})
+    : jsonp(_cUrl);
+  _cFetch
     .then(function(data) {
       if (data.result === 'ok') {
         showToast('✓ 주문을 확인 완료 처리했어요');
@@ -1350,7 +1368,11 @@ function saveMemo(row) {
   });
 
   // Apps Script에도 저장 시도
-  jsonp(SCRIPT_URL + '?action=savememo&row=' + row + '&memo=' + encodeURIComponent(memoVal) + '&t=' + Date.now())
+  var _mUrl = SCRIPT_URL + '?action=savememo&row=' + row + '&memo=' + encodeURIComponent(memoVal) + '&t=' + Date.now();
+  var _mFetch = window.location.href.indexOf('script.google.com') >= 0
+    ? fetch(_mUrl).then(function(r){return r.json();})
+    : jsonp(_mUrl);
+  _mFetch
     .catch(function(){}) // 실패해도 로컬은 저장됨
     .finally(function() {
       btn.disabled = false;
@@ -1476,7 +1498,11 @@ function loadProducts() {
   if(!listEl) return;
   listEl.innerHTML = '<div style="text-align:center;padding:20px;color:#9A8870;font-size:13px;">불러오는 중...</div>';
 
-  jsonp(SCRIPT_URL + '?action=getproducts&t=' + Date.now())
+  var _pUrl = SCRIPT_URL + '?action=getproducts&t=' + Date.now();
+  var _pFetch = window.location.href.indexOf('script.google.com') >= 0
+    ? fetch(_pUrl).then(function(r){return r.json();})
+    : jsonp(_pUrl);
+  _pFetch
     .then(function(data){
       if(data.result !== 'ok') throw new Error(data.message);
       localProducts = data.products || [];
@@ -1586,7 +1612,11 @@ function saveProducts() {
   var btn = document.querySelector('.btn-inv-save');
   if(btn) { btn.disabled = true; btn.textContent = '저장 중...'; }
 
-  jsonp(SCRIPT_URL + '?action=saveproducts&data=' + encodeURIComponent(JSON.stringify(localProducts)) + '&t=' + Date.now())
+  var _sUrl = SCRIPT_URL + '?action=saveproducts&data=' + encodeURIComponent(JSON.stringify(localProducts)) + '&t=' + Date.now();
+  var _sFetch = window.location.href.indexOf('script.google.com') >= 0
+    ? fetch(_sUrl).then(function(r){return r.json();})
+    : jsonp(_sUrl);
+  _sFetch
     .then(function(data){
       if(data.result === 'ok') {
         showToast('✓ 상품 목록이 저장되었습니다!');
