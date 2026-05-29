@@ -844,30 +844,35 @@ var SCRIPT_URL = (function(){
 
 // ══════════════════════════════
 // JSONP 유틸 (CORS 우회)
+// Apps Script redirect 대응 - onerror 없이 timeout만 사용
 // ══════════════════════════════
 var _jsonpId = 0;
 function jsonp(url) {
   return new Promise(function(resolve, reject) {
     var cbName = '_jp_' + (++_jsonpId) + '_' + Date.now();
+    var script = document.createElement('script');
+    var done = false;
     var timeout = setTimeout(function() {
+      if(done) return;
+      done = true;
       delete window[cbName];
       if(script.parentNode) script.parentNode.removeChild(script);
-      reject(new Error('JSONP timeout'));
-    }, 15000);
+      // timeout 시 fetch로 재시도
+      fetch(url + (url.indexOf('?')>=0?'&':'?') + '_t=' + Date.now())
+        .then(function(r){return r.json();})
+        .then(resolve)
+        .catch(reject);
+    }, 8000);
     window[cbName] = function(data) {
+      if(done) return;
+      done = true;
       clearTimeout(timeout);
       delete window[cbName];
       if(script.parentNode) script.parentNode.removeChild(script);
       resolve(data);
     };
-    var script = document.createElement('script');
     script.src = url + (url.indexOf('?')>=0?'&':'?') + 'callback=' + cbName;
-    script.onerror = function() {
-      clearTimeout(timeout);
-      delete window[cbName];
-      if(script.parentNode) script.parentNode.removeChild(script);
-      reject(new Error('JSONP error'));
-    };
+    // onerror 제거 - Apps Script redirect 시 잘못 발동되므로
     document.head.appendChild(script);
   });
 }
