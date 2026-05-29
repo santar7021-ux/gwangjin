@@ -1225,7 +1225,9 @@ function buildSalesHTML() {
   }
 
   // ── 집계 ──
-  var totalOrders = allOrders.length;
+  var totalOrders = allOrders.filter(function(o){
+    return o.product && o.product !== '-' && o.product !== '';
+  }).length;
   var totalBoxes  = 0;
   var totalAmount = 0;
   var productMap  = {}; // 상품별 박스수/금액
@@ -1235,8 +1237,8 @@ function buildSalesHTML() {
   allOrders.forEach(function(o) {
     if(!o.product || o.product === '-' || o.product === '') return;
     var p   = parseProduct(o.product);
+    if(!p.name || p.qty <= 0) return;
     var amt = calcPrice(o.product);
-    if(!p.name || amt === 0) return;
     totalBoxes  += p.qty;
     totalAmount += amt;
 
@@ -1248,7 +1250,7 @@ function buildSalesHTML() {
     // 주문번호별 그룹
     if(!o.product || o.product === '-' || o.product === '') return;
     var p2 = parseProduct(o.product);
-    if(!p2.name || calcPrice(o.product) === 0) return;
+    if(!p2.name || p2.qty <= 0) return;
     var grpKey = o.orderNo + '_' + o.orderIndex;
     if (!orderGroups[grpKey]) {
       orderGroups[grpKey] = {
@@ -1264,6 +1266,11 @@ function buildSalesHTML() {
   });
 
   var h = '';
+
+  // 유효 주문 없으면 안내
+  if(totalOrders === 0) {
+    return '<div style="text-align:center;padding:32px;color:#9A8870;font-size:13px;">아직 주문 데이터가 없습니다.</div>';
+  }
 
   // ── 요약 카드 3개 ──
   h += '<div class="sales-summary">'
