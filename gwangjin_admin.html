@@ -941,7 +941,7 @@ function playAlert() {
       osc.type = 'sine';
       osc.frequency.value = note[0];
       gain.gain.setValueAtTime(0, now + note[1]);
-      gain.gain.linearRampToValueAtTime(0.35, now + note[1] + 0.05);
+      gain.gain.linearRampToValueAtTime(0.9, now + note[1] + 0.05);
       gain.gain.exponentialRampToValueAtTime(0.001, now + note[1] + 0.55);
       osc.start(now + note[1]);
       osc.stop(now + note[1] + 0.6);
@@ -959,9 +959,9 @@ function speakAlert(count) {
     function doSpeak() {
       var msg = new SpeechSynthesisUtterance(text);
       msg.lang = 'ko-KR';
-      msg.rate = 0.9;
+      msg.rate = 0.85;
       msg.pitch = 1.0;
-      msg.volume = 1.0;
+      msg.volume = 1.0;  // 최대 볼륨
 
       // 한국어 음성 찾기
       var voices = window.speechSynthesis.getVoices();
@@ -972,6 +972,18 @@ function speakAlert(count) {
 
       msg.onstart = function(){ console.log('TTS 시작'); };
       msg.onerror = function(e){ console.log('TTS 오류:', e); };
+      // 첫 번째 발화 끝나면 한 번 더 반복
+      msg.onend = function() {
+        setTimeout(function(){
+          var msg2 = new SpeechSynthesisUtterance(text);
+          msg2.lang = 'ko-KR';
+          msg2.rate = 0.85;
+          msg2.pitch = 1.0;
+          msg2.volume = 1.0;
+          if(koVoice) msg2.voice = koVoice;
+          window.speechSynthesis.speak(msg2);
+        }, 300);
+      };
 
       window.speechSynthesis.speak(msg);
     }
