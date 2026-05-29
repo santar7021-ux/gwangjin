@@ -1521,38 +1521,68 @@ function renderProductList() {
     listEl.innerHTML = '<div style="text-align:center;padding:20px;color:#9A8870;font-size:13px;">등록된 상품이 없습니다.</div>';
     return;
   }
-  listEl.innerHTML = localProducts.map(function(p, i) {
+  var rows = localProducts.map(function(p, i) {
     var stockClass = p.stock <= 0 ? 'zero' : p.stock <= 10 ? 'low' : 'ok';
     var stockLabel = p.stock <= 0 ? '품절' : p.stock <= 10 ? '부족' : '정상';
-    return '<div class="inv-row">'
-      + '<div class="inv-row-left">'
+    var visOn = p.visible ? 'on' : 'off';
+    var div = document.createElement('div');
+    div.className = 'inv-row';
+    div.innerHTML =
+      '<div class="inv-row-left">'
         + '<div class="inv-prod-name">'
-          + '<input style="border:none;background:none;font-size:14px;font-weight:700;color:var(--br);width:100%;font-family:inherit;padding:0;outline:none;" '
-          + 'value="' + p.name + '" onchange="updateProd(' + i + ','name',this.value)">'
+          + '<input data-i="'+i+'" data-f="name" class="inv-inline-input" style="border:none;background:none;font-size:14px;font-weight:700;color:var(--br);width:100%;font-family:inherit;padding:0;outline:none;" value="'+escHtml(p.name)+'">'
         + '</div>'
         + '<div class="inv-prod-price">'
-          + '단가 <input style="border:none;background:none;font-size:11px;color:var(--ts);width:60px;font-family:inherit;padding:0;outline:none;text-align:left;" '
-          + 'type="number" value="' + p.price + '" onchange="updateProd(' + i + ','price',this.value)">'
-          + '원 · 택배 <input style="border:none;background:none;font-size:11px;color:var(--ts);width:46px;font-family:inherit;padding:0;outline:none;" '
-          + 'type="number" value="' + p.delivery + '" onchange="updateProd(' + i + ','delivery',this.value)">'
+          + '단가 <input data-i="'+i+'" data-f="price" class="inv-inline-input" type="number" style="border:none;background:none;font-size:11px;color:var(--ts);width:60px;font-family:inherit;padding:0;outline:none;" value="'+p.price+'">'
+          + '원 · 택배 <input data-i="'+i+'" data-f="delivery" class="inv-inline-input" type="number" style="border:none;background:none;font-size:11px;color:var(--ts);width:46px;font-family:inherit;padding:0;outline:none;" value="'+p.delivery+'">'
           + '원'
         + '</div>'
       + '</div>'
       + '<div style="display:flex;align-items:center;gap:6px;flex-shrink:0;">'
         + '<div class="inv-stock-ctrl">'
-          + '<button class="inv-stock-btn" onclick="stockStep(' + i + ',-1)">−</button>'
-          + '<input class="inv-stock-input" type="number" value="' + p.stock + '" min="0" '
-          + 'onchange="updateProd(' + i + ','stock',this.value)" id="stock-input-' + i + '">'
-          + '<button class="inv-stock-btn" onclick="stockStep(' + i + ',1)">＋</button>'
+          + '<button class="inv-stock-btn" data-i="'+i+'" data-d="-1" onclick="stockStepBtn(this)">−</button>'
+          + '<input class="inv-stock-input" data-i="'+i+'" data-f="stock" type="number" value="'+p.stock+'" min="0" id="stock-input-'+i+'">'
+          + '<button class="inv-stock-btn" data-i="'+i+'" data-d="1" onclick="stockStepBtn(this)">＋</button>'
         + '</div>'
-        + '<span class="inv-stock-badge ' + stockClass + '">' + stockLabel + '</span>'
-        + '<button class="inv-visible-toggle ' + (p.visible?'on':'off') + '" '
-          + 'id="vis-btn-' + i + '" onclick="toggleVisible(' + i + ')" title="주문서에 표시 여부"></button>'
-        + '<button class="inv-del-btn" onclick="delProduct(' + i + ')">✕</button>'
-      + '</div>'
-    + '</div>';
-  }).join('');
+        + '<span class="inv-stock-badge '+stockClass+'">'+stockLabel+'</span>'
+        + '<button class="inv-visible-toggle '+visOn+'" data-i="'+i+'" id="vis-btn-'+i+'" onclick="toggleVisible('+i+')"></button>'
+        + '<button class="inv-del-btn" data-i="'+i+'" onclick="delProduct('+i+')">✕</button>'
+      + '</div>';
+    // 인라인 input 이벤트 (onchange 대신 addEventListener)
+    div.querySelectorAll && setTimeout(function(){
+      var inputs = listEl.querySelectorAll('.inv-inline-input');
+      inputs.forEach(function(inp){
+        inp.onchange = function(){
+          var fi = parseInt(this.getAttribute('data-i'));
+          var ff = this.getAttribute('data-f');
+          updateProd(fi, ff, this.value);
+        };
+      });
+    }, 0);
+    return div;
+  });
+  listEl.innerHTML = '';
+  rows.forEach(function(r){ if(r) listEl.appendChild(r); });
+  // 이벤트 바인딩
+  listEl.querySelectorAll('.inv-inline-input').forEach(function(inp){
+    inp.onchange = function(){
+      var fi = parseInt(this.getAttribute('data-i'));
+      var ff = this.getAttribute('data-f');
+      updateProd(fi, ff, this.value);
+    };
+  });
 }
+
+function escHtml(s){
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+
+function stockStepBtn(btn){
+  var i = parseInt(btn.getAttribute('data-i'));
+  var d = parseInt(btn.getAttribute('data-d'));
+  stockStep(i, d);
+}
+
 
 // 재고 +/- 버튼
 function stockStep(i, delta) {
