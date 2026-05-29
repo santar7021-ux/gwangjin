@@ -1267,8 +1267,11 @@ function loadProductsForOrder() {
   jsonp(SCRIPT_URL + '?action=getproducts&t=' + Date.now())
     .then(function(data){
       if(data.result === 'ok' && data.products && data.products.length > 0) {
-        PRODUCT_LIST = data.products.filter(function(p){ return p.visible !== false; });
-        rebuildPriceMap();
+        // visible 필터 + stock > 0 필터
+        PRODUCT_LIST = data.products.filter(function(p){
+          return p.visible !== false && (p.stock === undefined || p.stock > 0);
+        });
+        rebuildPriceMap(); // 단가 즉시 반영
         // 이미 열린 받는사람 드롭다운들 갱신
         document.querySelectorAll('select.prod-select').forEach(function(sel) {
           var curVal = sel.value;
