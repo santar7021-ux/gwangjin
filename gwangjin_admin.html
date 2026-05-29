@@ -1221,62 +1221,39 @@ function closeSalesModal(e) {
 
 function buildSalesHTML() {
   if (!allOrders || allOrders.length === 0) {
-    return '<div style="text-align:center;padding:32px;color:#9A8870;">주문 데이터가 없습니다.</div>';
+    return '<div style="text-align:center;padding:32px;color:#9A8870;font-size:13px;">주문 데이터가 없습니다.</div>';
   }
 
   // ── 집계 ──
-  var totalOrders = allOrders.filter(function(o){
-    return o.product && o.product !== '-' && o.product !== '';
-  }).length;
   var totalBoxes  = 0;
   var totalAmount = 0;
-  var productMap  = {}; // 상품별 박스수/금액
-  // 주문번호별 그룹
-  var orderGroups = {};
+  var productMap  = {};
+  var validCount  = 0;
 
   allOrders.forEach(function(o) {
     if(!o.product || o.product === '-' || o.product === '') return;
-    var p   = parseProduct(o.product);
+    var p = parseProduct(o.product);
     if(!p.name || p.qty <= 0) return;
     var amt = calcPrice(o.product);
+    validCount++;
     totalBoxes  += p.qty;
     totalAmount += amt;
-
-    // 상품별 집계
     if (!productMap[p.name]) productMap[p.name] = {boxes:0, amount:0};
     productMap[p.name].boxes  += p.qty;
     productMap[p.name].amount += amt;
-
-    // 주문번호별 그룹
-    if(!o.product || o.product === '-' || o.product === '') return;
-    var p2 = parseProduct(o.product);
-    if(!p2.name || p2.qty <= 0) return;
-    var grpKey = o.orderNo + '_' + o.orderIndex;
-    if (!orderGroups[grpKey]) {
-      orderGroups[grpKey] = {
-        orderNo:    o.orderNo,
-        orderIndex: o.orderIndex,
-        submittedAt:o.submittedAt,
-        senderName: o.senderName,
-        items:[], total:0
-      };
-    }
-    orderGroups[grpKey].items.push({product:o.product, qty:p.qty, amt:amt});
-    orderGroups[grpKey].total += amt;
   });
 
-  var h = '';
-
-  // 유효 주문 없으면 안내
-  if(totalOrders === 0) {
+  if (validCount === 0) {
     return '<div style="text-align:center;padding:32px;color:#9A8870;font-size:13px;">아직 주문 데이터가 없습니다.</div>';
   }
+
+  var h = '';
 
   // ── 요약 카드 3개 ──
   h += '<div class="sales-summary">'
     + '<div class="sales-sum-card">'
       + '<div class="sales-sum-label">총 주문건수</div>'
-      + '<div class="sales-sum-value">' + totalOrders + '</div>'
+      + '<div class="sales-sum-value">' + validCount + '</div>'
       + '<div class="sales-sum-unit">건</div>'
     + '</div>'
     + '<div class="sales-sum-card">'
@@ -1301,6 +1278,7 @@ function buildSalesHTML() {
 
   var tableTotal = 0;
   var tableTotalBoxes = 0;
+
   prodOrder.forEach(function(name) {
     if (!productMap[name]) return;
     var d = productMap[name];
@@ -1315,6 +1293,7 @@ function buildSalesHTML() {
       + '<td class="highlight">' + d.amount.toLocaleString() + '원</td>'
     + '</tr>';
   });
+
   // 기타 상품
   Object.keys(productMap).forEach(function(name) {
     if (prodOrder.indexOf(name) >= 0 || !name) return;
@@ -1329,33 +1308,13 @@ function buildSalesHTML() {
       + '<td class="highlight">' + d.amount.toLocaleString() + '원</td>'
     + '</tr>';
   });
+
   h += '<tr class="total-row">'
     + '<td colspan="3">합 계</td>'
     + '<td>' + tableTotalBoxes + '박스</td>'
     + '<td>' + tableTotal.toLocaleString() + '원</td>'
   + '</tr>';
   h += '</tbody></table></div>';
-
-  // ── 주문 건별 상세 ──
-  h += '<div class="sales-section-title">주문 건별 상세</div>';
-  h += '<div class="sales-order-list">';
-  var sortedGroups = Object.values(orderGroups).sort(function(a,b){
-    return (b.submittedAt||'').localeCompare(a.submittedAt||'');
-  });
-  sortedGroups.forEach(function(grp) {
-    h += '<div class="sales-order-item">'
-      + '<div class="sales-order-hd">'
-        + '<div class="sales-order-no">' + (grp.orderIndex||'주문') + ' · ' + (grp.senderName||'주문자') + '</div>'
-        + '<div class="sales-order-price">' + grp.total.toLocaleString() + '원</div>'
-      + '</div>'
-      + '<div class="sales-order-detail">' + (grp.submittedAt?grp.submittedAt.slice(0,16):'') + '</div>'
-      + '<div class="sales-order-breakdown">';
-    grp.items.forEach(function(item) {
-      h += '<span class="sales-order-tag">🍐 ' + (item.product||'-') + ' → ' + item.amt.toLocaleString() + '원</span>';
-    });
-    h += '</div></div>';
-  });
-  h += '</div>';
 
   return h;
 }
