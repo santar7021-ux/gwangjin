@@ -734,6 +734,63 @@ html, body {
   box-sizing:border-box;
 }
 .bulk-form-btn:hover{background:#DDF0CC;border-color:#3B5A28;}
+
+/* ── 내 주문 내역 탭 ── */
+.my-orders-wrap{padding:12px;}
+.my-order-card{
+  background:#fff;border:1px solid #D8CEC0;
+  border-radius:14px;overflow:hidden;margin-bottom:10px;
+}
+.my-order-hd{
+  background:linear-gradient(90deg,#3B2A1A,#5A4030);
+  padding:11px 15px;
+  display:flex;align-items:center;justify-content:space-between;
+}
+.my-order-no{font-size:12px;font-weight:700;color:#fff;}
+.my-order-time{font-size:11px;color:rgba(255,255,255,.6);}
+.my-order-status{
+  font-size:10px;font-weight:800;padding:3px 8px;border-radius:8px;
+}
+.my-order-status.new{background:rgba(255,200,100,.2);color:#F0C040;}
+.my-order-status.done{background:rgba(106,144,80,.3);color:#88D068;}
+.my-order-body{padding:13px 15px;}
+.my-order-section{
+  font-size:10px;font-weight:700;color:#6A9050;
+  letter-spacing:.4px;margin:8px 0 4px;
+}
+.my-order-section:first-child{margin-top:0;}
+.my-order-row{
+  display:flex;font-size:13px;margin-bottom:3px;
+}
+.my-order-k{color:#9A8870;min-width:58px;flex-shrink:0;font-size:12px;}
+.my-order-v{color:#3B2A1A;font-weight:500;flex:1;word-break:keep-all;}
+.my-order-amt{
+  background:#F0EBE3;border-radius:8px;
+  padding:8px 12px;margin-top:8px;
+  display:flex;justify-content:space-between;
+  font-size:13px;font-weight:700;color:#3B2A1A;
+}
+.my-order-empty{
+  text-align:center;padding:40px 20px;color:#9A8870;
+}
+.my-order-empty-ico{font-size:36px;margin-bottom:10px;}
+.my-order-loading{
+  text-align:center;padding:32px;color:#9A8870;font-size:13px;
+}
+/* 인트로 탭 버튼 */
+.intro-tabs{
+  display:flex;background:#fff;
+  border-bottom:2px solid #D8CEC0;
+}
+.intro-tab{
+  flex:1;padding:12px 4px;text-align:center;
+  font-size:13px;font-weight:600;color:#9A8870;
+  border:none;background:none;cursor:pointer;
+  border-bottom:2px solid transparent;
+  margin-bottom:-2px;font-family:inherit;
+  transition:all .2s;
+}
+.intro-tab.act{color:#3B2A1A;border-bottom-color:#6A9050;}
 </style>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -944,6 +1001,11 @@ html, body {
     </div>
   </div>
   <div class="intro-gold-bar"></div>
+  <div class="intro-tabs">
+    <button class="intro-tab act" id="itab-order" onclick="switchIntroTab('order')">📝 주문서 작성</button>
+    <button class="intro-tab" id="itab-history" onclick="switchIntroTab('history')">📦 내 주문 내역</button>
+  </div>
+  <div id="intro-order-panel">
   <div class="intro-body">
     <div class="intro-greeting">안녕하세요.<br>남양주 먹골배 광진농원입니다.</div>
     <div class="intro-desc">해당 페이지는 광진농원 택배 주문서입니다.<br>아래의 2가지 주문 방식 중 하나를 선택해 주세요.</div>
@@ -962,6 +1024,15 @@ html, body {
           <div class="intro-btn-sub">10박스 이상 주문</div>
         </div>
       </button>
+    </div>
+  </div>
+  </div><!-- /#intro-order-panel -->
+
+  <!-- 내 주문 내역 패널 -->
+  <div id="intro-history-panel" style="display:none;width:100%;flex:1;overflow-y:auto;">
+    <div class="my-orders-wrap" id="myOrdersWrap">
+      <div class="my-order-loading" id="myOrdersLoading" style="display:none;">⏳ 주문 내역을 불러오는 중...</div>
+      <div id="myOrdersList"></div>
     </div>
   </div>
 </div>
@@ -1349,6 +1420,151 @@ function buildProductOptions() {
       var label = p.name + priceStr + stockStr;
       return '<option value="' + p.name + '">' + label + '</option>';
     }).join('');
+}
+
+
+// ══════════════════════════════
+// 내 주문 내역
+// ══════════════════════════════
+var MY_ORDERS_KEY = 'gwangjin_my_orders'; // LocalStorage 키
+
+// 주문번호 저장
+function saveMyOrderNo(orderNo) {
+  try {
+    var nos = JSON.parse(localStorage.getItem(MY_ORDERS_KEY)||'[]');
+    if(nos.indexOf(orderNo) < 0) {
+      nos.unshift(orderNo); // 최신 순
+      if(nos.length > 20) nos = nos.slice(0,20); // 최대 20건
+      localStorage.setItem(MY_ORDERS_KEY, JSON.stringify(nos));
+    }
+  } catch(e) {}
+}
+
+// 저장된 주문번호 목록
+function getMyOrderNos() {
+  try {
+    return JSON.parse(localStorage.getItem(MY_ORDERS_KEY)||'[]');
+  } catch(e) { return []; }
+}
+
+// 인트로 탭 전환
+function switchIntroTab(tab) {
+  document.getElementById('itab-order').classList.toggle('act', tab==='order');
+  document.getElementById('itab-history').classList.toggle('act', tab==='history');
+  document.getElementById('intro-order-panel').style.display = tab==='order' ? '' : 'none';
+  document.getElementById('intro-history-panel').style.display = tab==='history' ? '' : 'none';
+  if(tab === 'history') loadMyOrders();
+}
+
+// 주문 내역 불러오기
+function loadMyOrders() {
+  var nos = getMyOrderNos();
+  var listEl = document.getElementById('myOrdersList');
+  var loadEl = document.getElementById('myOrdersLoading');
+  if(!listEl) return;
+
+  if(nos.length === 0) {
+    listEl.innerHTML = '<div class="my-order-empty"><div class="my-order-empty-ico">🍐</div><div>아직 주문 내역이 없어요.<br>소량 주문을 눌러 주문해 주세요.</div></div>';
+    return;
+  }
+
+  loadEl.style.display = 'block';
+  listEl.innerHTML = '';
+
+  var url = SCRIPT_URL + '?action=myorders&nos=' + encodeURIComponent(nos.join(',')) + '&t=' + Date.now();
+  jsonp(url)
+    .then(function(data) {
+      loadEl.style.display = 'none';
+      if(data.result !== 'ok' || !data.orders || data.orders.length === 0) {
+        listEl.innerHTML = '<div class="my-order-empty"><div class="my-order-empty-ico">🍐</div><div>주문 내역을 불러올 수 없어요.</div></div>';
+        return;
+      }
+      renderMyOrders(data.orders, nos);
+    })
+    .catch(function() {
+      loadEl.style.display = 'none';
+      listEl.innerHTML = '<div class="my-order-empty"><div class="my-order-empty-ico">⚠️</div><div>불러오기 실패. 잠시 후 다시 시도해 주세요.</div></div>';
+    });
+}
+
+// 주문 내역 렌더링
+function renderMyOrders(orders, nos) {
+  var listEl = document.getElementById('myOrdersList');
+
+  // orderNo+orderIndex 기준으로 그룹핑
+  var groups = {};
+  var groupKeys = [];
+  orders.forEach(function(o) {
+    var gkey = (o.orderNo||'') + '::' + (o.orderIndex||'');
+    if(!groups[gkey]) { groups[gkey] = []; groupKeys.push(gkey); }
+    groups[gkey].push(o);
+  });
+
+  // nos 순서대로 정렬 (최신 주문 먼저)
+  groupKeys.sort(function(a,b) {
+    var noA = a.split('::')[0];
+    var noB = b.split('::')[0];
+    return nos.indexOf(noA) - nos.indexOf(noB);
+  });
+
+  var html = '';
+  groupKeys.forEach(function(gkey) {
+    var grp = groups[gkey];
+    var first = grp[0];
+    var isDone = grp.every(function(o){ return o.status==='DONE'; });
+    var statusText = isDone ? '확인완료' : '접수 완료';
+    var statusCls  = isDone ? 'done' : 'new';
+    var timeStr = first.submittedAt ? first.submittedAt.slice(0,16) : '';
+
+    // 금액 계산
+    var totalAmt = 0;
+    grp.forEach(function(o){
+      var p = parseProduct(o.product);
+      var unit = PRICE_MAP[p.name]||0;
+      if(unit > 0) totalAmt += (unit + DELIVERY) * p.qty;
+    });
+
+    html += '<div class="my-order-card">'
+      + '<div class="my-order-hd">'
+        + '<div>'
+          + '<div class="my-order-no">' + (first.orderIndex||'주문') + ' · ' + (first.senderName||'주문자') + '</div>'
+          + '<div class="my-order-time">' + timeStr + '</div>'
+        + '</div>'
+        + '<span class="my-order-status ' + statusCls + '">' + statusText + '</span>'
+      + '</div>'
+      + '<div class="my-order-body">';
+
+    // 보내는 사람
+    html += '<div class="my-order-section">보내는 사람</div>'
+      + '<div class="my-order-row"><span class="my-order-k">성명</span><span class="my-order-v">' + (first.senderName||'-') + '</span></div>'
+      + '<div class="my-order-row"><span class="my-order-k">연락처</span><span class="my-order-v">' + (first.senderPhone||'-') + '</span></div>';
+
+    // 받는 사람들
+    grp.forEach(function(o, ri) {
+      var price = (function(){
+        var p = parseProduct(o.product);
+        var u = PRICE_MAP[p.name]||0;
+        return u > 0 ? (u+DELIVERY)*p.qty : 0;
+      })();
+      html += '<div class="my-order-section">받는 사람 ' + (ri+1) + '</div>'
+        + '<div class="my-order-row"><span class="my-order-k">성명</span><span class="my-order-v">' + (o.rcptName||'-') + '</span></div>'
+        + '<div class="my-order-row"><span class="my-order-k">주소</span><span class="my-order-v">' + (o.rcptAddr||'-') + '</span></div>'
+        + '<div class="my-order-row"><span class="my-order-k">상품</span><span class="my-order-v">' + (o.product||'-') + (price>0?' · '+price.toLocaleString()+'원':'') + '</span></div>';
+    });
+
+    if(first.delivDate && first.delivDate!=='미지정') {
+      html += '<div class="my-order-row" style="margin-top:4px;"><span class="my-order-k">배송일</span><span class="my-order-v">' + first.delivDate + '</span></div>';
+    }
+
+    // 총 금액
+    if(totalAmt > 0) {
+      html += '<div class="my-order-amt"><span>총 주문 금액</span><span style="color:#6A9050;">₩ ' + totalAmt.toLocaleString() + '</span></div>';
+    }
+
+    html += '</div></div>';
+  });
+
+  listEl.innerHTML = html || '<div class="my-order-empty"><div class="my-order-empty-ico">🍐</div><div>주문 내역이 없어요.</div></div>';
 }
 
 // ── 주소 유틸 ──
@@ -1900,6 +2116,8 @@ function sub(){
   function _goComplete(){
     if(_done) return;
     _done = true;
+    // 주문번호 LocalStorage에 저장
+    saveMyOrderNo(orderNo);
     gs(4);
     if(submitBtn){submitBtn.disabled=false;submitBtn.innerHTML='🍐 주문서 제출하기';}
   }
