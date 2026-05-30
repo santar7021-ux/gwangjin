@@ -1210,6 +1210,12 @@ html, body {
   <div id="order-list"></div>
   <button class="badd" type="button" id="add-order-btn" onclick="addOrder()">＋ 주문 추가</button>
   <div style="height:10px"></div>
+  <div id="order-summary-box" style="display:none;margin:0 0 10px;background:#F0EBE3;border-radius:12px;padding:12px 15px;">
+    <div style="font-size:12px;font-weight:700;color:#3B2A1A;margin-bottom:8px;display:flex;align-items:center;gap:5px;">
+      🍐 주문 금액 요약
+    </div>
+    <div id="order-summary-content"></div>
+  </div>
   <div class="navr"><button class="bfwd" onclick="ns(1)">다음 단계 →</button></div>
 </div>
 
@@ -1632,6 +1638,59 @@ function renderOrders() {
   });
 }
 
+
+// ── 주문 금액 요약 업데이트 ──
+function updateOrderSummary() {
+  var box = document.getElementById('order-summary-box');
+  var content = document.getElementById('order-summary-content');
+  if(!box || !content) return;
+
+  var totalProductAmt = 0;
+  var totalBoxes = 0;
+  var hasAnyProduct = false;
+  var rows = '';
+
+  orderIds.forEach(function(oid, oidx) {
+    var rids = rcptData[oid]||[];
+    rids.forEach(function(rid) {
+      var key = oid+'_'+rid;
+      var psEl = document.getElementById('ps-'+key);
+      var psv = psEl ? psEl.value : '';
+      if(!psv) return;
+      var prodName = psv;
+      var qtyEl = document.getElementById('qty-'+key);
+      var qty = qtyEl ? (parseInt(qtyEl.value)||1) : 1;
+      var unitPrice = PRICE_MAP[prodName] || 0;
+      var prodAmt = unitPrice * qty;
+      var delivAmt = DELIVERY * qty;
+      if(unitPrice > 0) {
+        hasAnyProduct = true;
+        totalProductAmt += prodAmt;
+        totalBoxes += qty;
+        var rn = ((document.getElementById('rn-'+key)||{}).value||'').trim()||'받는사람';
+        rows += '<div style="display:flex;justify-content:space-between;font-size:12px;color:#5A4830;padding:2px 0;">'
+          + '<span>' + (oidx+1) + '주문 · ' + rn + ' · ' + prodName + ' ' + qty + '박스</span>'
+          + '<span style="font-weight:700;">' + (prodAmt+delivAmt).toLocaleString() + '원</span>'
+          + '</div>';
+      }
+    });
+  });
+
+  if(!hasAnyProduct) { box.style.display='none'; return; }
+
+  var totalDelivAmt = DELIVERY * totalBoxes;
+  var grandTotal = totalProductAmt + totalDelivAmt;
+
+  content.innerHTML = rows
+    + '<div style="border-top:1px solid #D8CEC0;margin-top:6px;padding-top:6px;display:flex;justify-content:space-between;font-size:12px;color:#5A4830;">'
+      + '<span>택배비 합계</span><span style="font-weight:700;">' + totalDelivAmt.toLocaleString() + '원 (' + totalBoxes + '박스)</span>'
+    + '</div>'
+    + '<div style="display:flex;justify-content:space-between;font-size:14px;font-weight:800;color:#6A9050;padding-top:5px;">'
+      + '<span>총 주문 금액</span><span>₩ ' + grandTotal.toLocaleString() + '</span>'
+    + '</div>';
+  box.style.display = 'block';
+}
+
 // ── 유효성 검사 ──
 function sErr(id,on){var el=document.getElementById(id);if(el)el.classList.toggle('err',on);}
 function phOk(v){return v&&v.replace(/\D/g,'').length>=9;}
@@ -1865,6 +1924,7 @@ function qtyChange(key, delta) {
   var cur = parseInt(input.value)||1;
   var next = Math.max(1, Math.min(10, cur + delta));
   input.value = next;
+  setTimeout(updateOrderSummary, 50);
   // 맞아요를 이미 클릭한 key는 팝업 안 뜸
   if(next >= 2 && !_qtyConfirmed[key]) {
     var rname = ((document.getElementById('rn-'+key)||{}).value||'').trim();
@@ -1875,7 +1935,8 @@ function qtyChange(key, delta) {
 
 // ── 상품 드롭다운 변경 ──
 function onProdChange(sel, key) {
-  // custom 제거됨 - 빈 함수 유지
+  // custom 제거됨
+  setTimeout(updateOrderSummary, 50);
 }
 
 // ── 수량 팝업 ──
@@ -1981,6 +2042,9 @@ loadProductsForOrder();
       <div class="guide-num">② 보내는 사람 여럿, 받는 사람 여럿</div>
       <div class="guide-desc">여러 분이 각각 보내실 때</div>
       <div class="guide-arrow">→ <span class="guide-tag">주문 추가</span> 버튼을 이용해 주세요</div>
+    </div>
+    <div style="font-size:11px;color:#9A8870;text-align:center;padding:8px 0 4px;border-top:1px solid #EDE5D8;margin-top:4px;">
+      택배비는 3.5kg 박스당 4,000원 별도입니다.
     </div>
     <button class="guide-ok-btn" onclick="closeGuideAndGo()">확인 · 주문 시작하기 🍐</button>
   </div>

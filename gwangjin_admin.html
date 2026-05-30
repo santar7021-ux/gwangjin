@@ -618,6 +618,23 @@ html, body {
   padding:6px;display:none;
 }
 .pm-notice.show{display:block;}
+
+/* ── 카드 총금액 요약 ── */
+.card-total-wrap{
+  background:#F0EBE3;border-radius:9px;
+  padding:10px 12px;margin-top:10px;
+}
+.card-total-row{
+  display:flex;justify-content:space-between;
+  align-items:center;padding:3px 0;
+  font-size:12px;color:#5A4830;
+}
+.card-total-row.total{
+  border-top:1px solid #D8CEC0;margin-top:4px;padding-top:6px;
+}
+.card-total-k{font-weight:600;}
+.card-total-v{font-weight:600;color:#3B2A1A;}
+.card-total-v.total{font-size:14px;font-weight:800;color:#6A9050;}
 </style>
 </head>
 <body>
@@ -1258,7 +1275,6 @@ function renderOrders() {
 
   var html = '';
   groupOrder.forEach(function(dateKey) {
-    // 날짜 헤더
     var label = dateKey;
     var today = toDateStr(new Date());
     var yd = new Date(); yd.setDate(yd.getDate()-1);
@@ -1266,52 +1282,161 @@ function renderOrders() {
     else if (dateKey === toDateStr(yd)) label = '어제 · ' + dateKey;
     html += '<div class="date-group-hd"><span>📅 ' + label + ' (' + grouped[dateKey].length + '건)</span></div>';
 
+    // 같은 orderNo+orderIndex로 묶기 (보내는사람 그룹)
+    var orderGroups = {};
+    var orderGroupKeys = [];
     grouped[dateKey].forEach(function(o) {
-    var isNew  = o.status === 'NEW';
-    var isDone = o.status === 'DONE';
-    var timeStr = o.submittedAt ? o.submittedAt.slice(0,16) : '';
-    html += '<div class="order-card ' + (isNew?'new':isDone?'done':'') + '" id="card-'+o.row+'">' +
-      '<div class="card-hd ' + (isNew?'new':isDone?'done':'') + '">' +
-        '<div class="card-hd-left">' +
-          '<span class="card-status ' + (isNew?'new':'done') + '">' + (isNew?'신규':'확인완료') + '</span>' +
-          '<span class="card-no">' + (o.orderIndex||'') + '</span>' +
-        '</div>' +
-        '<span class="card-time">' + timeStr + '</span>' +
-      '</div>' +
-      '<div class="card-body">' +
-        '<div class="card-section">보내는 사람</div>' +
-        '<div class="card-row"><span class="card-k">성명</span><span class="card-v">' + (o.senderName||'주문자') + '</span></div>' +
-        '<div class="card-row"><span class="card-k">연락처</span><span class="card-v">' + (o.senderPhone||'-') + '</span></div>' +
-        '<div class="card-section">받는 사람</div>' +
-        '<div class="card-row"><span class="card-k">성명</span><span class="card-v">' + (o.rcptName||'-') + '</span></div>' +
-        '<div class="card-row"><span class="card-k">연락처</span><span class="card-v">' + (o.rcptPhone||'-') + '</span></div>' +
-        '<div class="card-row"><span class="card-k">주소</span><span class="card-v">' + (o.rcptAddr||'-') + '</span></div>' +
-        '<div class="card-row"><span class="card-k">상품</span><span class="card-v"><span class="card-product">🍐 ' + (o.product||'-') + '</span><span class="card-price">₩ ' + calcPrice(o.product).toLocaleString() + '</span></span></div>' +
-        (o.delivDate && o.delivDate!=='미지정' ? '<div class="card-row"><span class="card-k">배송일</span><span class="card-v">' + o.delivDate + '</span></div>' : '') +
-        (o.memo && o.memo!=='없음' ? '<div class="card-row"><span class="card-k">요청</span><span class="card-v">' + o.memo + '</span></div>' : '') +
-      '</div>' +
-      '<div class="card-memo-wrap">'
-        + '<div class="card-memo-label"><span>✏</span> 관리자 메모</div>'
-        + '<textarea class="card-memo-input" id="memo-' + o.row + '" placeholder="배송 관련 메모, 고객 특이사항 등을 기재해 주세요..." onkeydown="if(event.key===\'Enter\'&&(event.ctrlKey||event.metaKey)){saveMemo(' + o.row + ');return false;}">' + (o.adminMemo||'') + '</textarea>'
-        + '<div class="card-memo-row">'
-          + '<button class="btn-memo-save" id="memo-btn-' + o.row + '" onclick="saveMemo(' + o.row + ')">💾 저장</button>'
-          + '<div class="card-memo-saved" id="memo-ok-' + o.row + '">✓ 저장됨</div>'
+      var gkey = (o.orderNo||'unknown') + '::' + (o.orderIndex||'');
+      if(!orderGroups[gkey]) { orderGroups[gkey] = []; orderGroupKeys.push(gkey); }
+      orderGroups[gkey].push(o);
+    });
+
+    orderGroupKeys.forEach(function(gkey) {
+      var orders = orderGroups[gkey];
+      var first  = orders[0];
+      var isNew  = orders.some(function(o){ return o.status === 'NEW'; });
+      var isDone = orders.every(function(o){ return o.status === 'DONE'; });
+      var statusClass = isNew ? 'new' : isDone ? 'done' : '';
+      var statusText  = isNew ? '신규' : '확인완료';
+      var timeStr = first.submittedAt ? first.submittedAt.slice(0,16) : '';
+      var rowList = orders.map(function(o){ return o.row; });
+
+      // 금액 계산
+      var totalAmt = 0;
+      var totalBoxes = 0;
+      orders.forEach(function(o){
+        var amt = calcPrice(o.product);
+        totalAmt += amt;
+        var p = parseProduct(o.product);
+        totalBoxes += (p.qty||0);
+      });
+      var delivAmt = totalBoxes * DELIVERY;
+
+      html += '<div class="order-card ' + statusClass + '" id="card-grp-' + first.row + '">';
+
+      // 카드 헤더
+      html += '<div class="card-hd ' + statusClass + '">'
+        + '<div class="card-hd-left">'
+          + '<span class="card-status ' + (isNew?'new':'done') + '">' + statusText + '</span>'
+          + '<span class="card-no">' + (first.orderIndex||'') + '</span>'
         + '</div>'
-      + '</div>'
-      + '<div class="card-foot">' +
-        (isNew
-          ? '<button class="btn-confirm" onclick="confirmOrder(' + o.row + ', this)">✓ 확인 완료</button>'
-          : '<div class="btn-confirmed">✓ 확인됨' + (o.confirmedAt ? '<div class="confirmed-time">' + o.confirmedAt + '</div>' : '') + '</div>'
-        ) +
-        '<button class="btn-delete" onclick="deleteOrder(' + o.row + ', \'' + (o.rcptName||'주문자') + '\', this)">🗑 삭제</button>' +
-      '</div>' +
-    '</div>';
-    }); // grouped forEach
-  }); // groupOrder forEach
+        + '<span class="card-time">' + timeStr + '</span>'
+      + '</div>';
+
+      // 카드 바디
+      html += '<div class="card-body">'
+        + '<div class="card-section">보내는 사람</div>'
+        + '<div class="card-row"><span class="card-k">성명</span><span class="card-v">' + (first.senderName||'주문자') + '</span></div>'
+        + '<div class="card-row"><span class="card-k">연락처</span><span class="card-v">' + (first.senderPhone||'-') + '</span></div>';
+      if(first.senderAddr) {
+        html += '<div class="card-row"><span class="card-k">주소</span><span class="card-v">' + first.senderAddr + '</span></div>';
+      }
+
+      // 받는사람 N명 묶음
+      orders.forEach(function(o, ri) {
+        var price = calcPrice(o.product);
+        html += '<div class="card-section">받는 사람 ' + (ri+1) + '</div>'
+          + '<div class="card-row"><span class="card-k">성명</span><span class="card-v">' + (o.rcptName||'-') + '</span></div>'
+          + '<div class="card-row"><span class="card-k">연락처</span><span class="card-v">' + (o.rcptPhone||'-') + '</span></div>'
+          + '<div class="card-row"><span class="card-k">주소</span><span class="card-v">' + (o.rcptAddr||'-') + '</span></div>'
+          + '<div class="card-row"><span class="card-k">상품</span><span class="card-v">'
+            + '<span class="card-product">🍐 ' + (o.product||'-') + '</span>'
+            + (price > 0 ? '<span class="card-price">₩ ' + price.toLocaleString() + '</span>' : '')
+          + '</span></div>';
+      });
+
+      // 배송일·요청
+      if(first.delivDate && first.delivDate!=='미지정') {
+        html += '<div class="card-row"><span class="card-k">배송일</span><span class="card-v">' + first.delivDate + '</span></div>';
+      }
+      if(first.memo && first.memo!=='없음') {
+        html += '<div class="card-row"><span class="card-k">요청</span><span class="card-v">' + first.memo + '</span></div>';
+      }
+
+      // 총 금액 요약
+      if(totalAmt > 0) {
+        html += '<div class="card-total-wrap">'
+          + '<div class="card-total-row"><span class="card-total-k">상품 금액</span><span class="card-total-v">' + (totalAmt - delivAmt).toLocaleString() + '원</span></div>'
+          + '<div class="card-total-row"><span class="card-total-k">택배비</span><span class="card-total-v">' + delivAmt.toLocaleString() + '원 (' + totalBoxes + '박스)</span></div>'
+          + '<div class="card-total-row total"><span class="card-total-k">총 주문 금액</span><span class="card-total-v total">₩ ' + totalAmt.toLocaleString() + '</span></div>'
+        + '</div>';
+      }
+
+      html += '</div>'; // card-body
+
+      // 관리자 메모
+      html += '<div class="card-memo-wrap">'
+        + '<div class="card-memo-label"><span>✏</span> 관리자 메모</div>'
+        + '<textarea class="card-memo-input" id="memo-' + first.row + '" data-row="' + first.row + '" placeholder="배송 관련 메모, 고객 특이사항 등을 기재해 주세요...">' + (first.adminMemo||'') + '</textarea>'
+        + '<div class="card-memo-row">'
+          + '<button class="btn-memo-save" id="memo-btn-' + first.row + '" onclick="saveMemo(' + first.row + ')">💾 저장</button>'
+          + '<div class="card-memo-saved" id="memo-ok-' + first.row + '">✓ 저장됨</div>'
+        + '</div>'
+      + '</div>';
+
+      // 확인/삭제 버튼
+      html += '<div class="card-foot">';
+      if(isNew) {
+        html += '<button class="btn-confirm" onclick="confirmOrderGroup([' + rowList.join(',') + '], this)">✓ 확인 완료</button>';
+      } else {
+        html += '<div class="btn-confirmed">✓ 확인됨' + (first.confirmedAt ? '<div class="confirmed-time">' + first.confirmedAt + '</div>' : '') + '</div>';
+      }
+      var _dname = (first.senderName||'주문자').replace(/['"]/g,'');
+      html += '<button class="btn-delete" onclick="deleteOrderGroup([' + rowList.join(',') + '],this)" data-name="' + _dname + '">🗑 삭제</button>';
+      html += '</div></div>';
+    });
+  });
+
   list.innerHTML = html;
+  setTimeout(restoreLocalMemos, 50);
 }
 
-// ── 주문 확인 처리 ──
+
+// 그룹 확인 (여러 row 한번에)
+function confirmOrderGroup(rows, btn) {
+  btn.disabled = true; btn.textContent = '처리 중...';
+  var done = 0;
+  rows.forEach(function(row) {
+    var url = SCRIPT_URL + '?action=confirm&row=' + row + '&t=' + Date.now();
+    var doFetch = window.location.href.indexOf('script.google.com') >= 0
+      ? fetch(url).then(function(r){return r.json();})
+      : jsonp(url);
+    doFetch.then(function(data){
+      done++;
+      if(done === rows.length) {
+        showToast('✓ 주문을 확인 완료 처리했어요');
+        fetchOrders(false);
+      }
+    }).catch(function(){
+      done++;
+      if(done === rows.length) fetchOrders(false);
+    });
+  });
+}
+
+// 그룹 삭제
+function deleteOrderGroup(rows, btn) {
+  var name = btn.getAttribute('data-name') || '주문자';
+  if(!confirm('"' + name + '" 주문(' + rows.length + '건)을 모두 삭제할까요?\n삭제 후 복구가 불가능합니다.')) return;
+  btn.disabled = true; btn.textContent = '삭제 중...';
+  var done = 0;
+  // 큰 번호부터 삭제 (행 번호 밀림 방지)
+  var sorted = rows.slice().sort(function(a,b){return b-a;});
+  sorted.forEach(function(row) {
+    var url = SCRIPT_URL + '?action=deleteorder&row=' + row + '&t=' + Date.now();
+    var doFetch = window.location.href.indexOf('script.google.com') >= 0
+      ? fetch(url).then(function(r){return r.json();})
+      : jsonp(url);
+    doFetch.then(function(){
+      done++;
+      if(done === sorted.length) { showToast('✓ 주문이 삭제되었습니다.'); fetchOrders(false); }
+    }).catch(function(){
+      done++;
+      if(done === sorted.length) fetchOrders(false);
+    });
+  });
+}
+
 function confirmOrder(row, btn) {
   btn.disabled = true;
   btn.textContent = '처리 중...';
@@ -1527,6 +1652,15 @@ function restoreLocalMemos() {
       if (el && !el.value) el.value = memos[key];
     });
   } catch(e) {}
+  // textarea Ctrl+Enter 이벤트 바인딩
+  document.querySelectorAll('.card-memo-input[data-row]').forEach(function(ta){
+    ta.onkeydown = function(e){
+      if(e.key === 'Enter' && (e.ctrlKey || e.metaKey)){
+        saveMemo(parseInt(this.getAttribute('data-row')));
+        return false;
+      }
+    };
+  });
 }
 
 
