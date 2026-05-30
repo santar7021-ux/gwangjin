@@ -686,6 +686,54 @@ html, body {
   font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;
 }
 .guide-ok-btn:hover{background:#4A3828;}
+
+/* ── 통화 확인 팝업 ── */
+.call-confirm-overlay{
+  display:none;position:fixed;inset:0;
+  background:rgba(0,0,0,.55);z-index:9700;
+  align-items:center;justify-content:center;padding:24px;
+}
+.call-confirm-overlay.show{display:flex;}
+.call-confirm-modal{
+  background:#fff;border-radius:18px;
+  padding:26px 22px 20px;
+  max-width:min(320px,calc(100vw - 32px));
+  width:100%;box-shadow:0 8px 32px rgba(0,0,0,.2);
+  text-align:center;
+}
+.call-confirm-icon{font-size:34px;margin-bottom:10px;}
+.call-confirm-title{
+  font-size:15px;font-weight:800;color:#3B2A1A;
+  margin-bottom:8px;line-height:1.4;
+}
+.call-confirm-desc{
+  font-size:13px;color:#5A4830;line-height:1.65;
+  margin-bottom:18px;
+}
+.call-confirm-btns{display:flex;gap:8px;}
+.call-confirm-btn{
+  flex:1;padding:12px;border:none;border-radius:10px;
+  font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;
+  transition:all .15s;
+}
+.call-confirm-btn.yes{background:#3B2A1A;color:#fff;}
+.call-confirm-btn.yes:hover{background:#4A3828;}
+.call-confirm-btn.no{background:#F0EBE3;color:#5A4830;border:1.5px solid #D8CEC0;}
+.call-confirm-btn.no:hover{background:#E0D8CC;}
+
+/* ── 대량주문 양식 버튼 ── */
+.bulk-form-btn{
+  display:block;width:100%;padding:12px;
+  border-radius:11px;
+  background:#EEF5E8;color:#3B5A28;
+  border:1.5px solid #6A9050;
+  font-size:14px;font-weight:700;
+  text-align:center;text-decoration:none;
+  font-family:inherit;margin-bottom:0;
+  transition:all .15s;cursor:pointer;
+  box-sizing:border-box;
+}
+.bulk-form-btn:hover{background:#DDF0CC;border-color:#3B5A28;}
 </style>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -926,10 +974,11 @@ html, body {
     <div class="bulk-modal-desc">대량 주문의 경우, 광진농원 관리자와<br><b>유선 통화를 한 이후에</b><br>해당 메일로 내역을 보내주세요.</div>
     <div class="bulk-modal-email" onclick="copyEmail()">
       <span>✉</span>
-      <span id="bulkEmailTxt">santar7021@gmail.com</span>
+      <span id="bulkEmailTxt">rudia0707@naver.com</span>
     </div>
     <div class="bulk-copy-msg" id="bulkCopyMsg"></div>
-    <button class="bulk-modal-btn" onclick="closeBulkModal()">확인</button>
+    <a class="bulk-form-btn" href="https://docs.google.com/spreadsheets/d/1G3pwGGak8Q-7uARyQBWrUs7I1XauanRNvR8GdzdsvJg/export?format=xlsx&gid=1563642644" target="_blank" onclick="closeBulkModal()">📥 대량 주문 양식 받기</a>
+    <button class="bulk-modal-btn" style="margin-top:8px;" onclick="closeBulkModal()">확인</button>
   </div>
 </div>
 
@@ -1185,7 +1234,7 @@ html, body {
 <div class="page" id="p3">
   <div style="height:6px"></div>
   <div id="suma"></div>
-  <div class="notice"><b>📋 제출 전 확인해 주세요</b><br>내용이 맞으면 아래 버튼을 눌러 주문서를 제출해 주세요. 접수 후 광진농원에서 확인 연락드립니다.</div>
+  <div class="notice"><b>📋 제출 전 확인해 주세요</b><br>작성하신 내용이 맞다면 아래 버튼을 눌러 주문서를 제출해 주세요. 접수가 확인되면 광진농원에서 카카오톡 메시지를 전달드립니다.</div>
   <div class="navr"><button class="bbk" onclick="gs(2)">← 수정</button><button class="bfwd gold" onclick="sub()">🍐 주문서 제출하기</button></div>
 </div>
 
@@ -1409,10 +1458,33 @@ function delRcpt(oid, rid) {
 function renderRcpts(oid) {
   var container = document.getElementById('rcpt-list-'+oid);
   if(!container) return;
-  container.innerHTML = '';
   var rids = rcptData[oid]||[];
 
+  // 이미 렌더된 rid는 번호만 업데이트, 없는 rid만 새로 추가
+  var existingIds = {};
+  container.querySelectorAll('.rcpt-block').forEach(function(el){
+    existingIds[el.id] = el;
+  });
+
+  // 삭제된 것 제거
+  Object.keys(existingIds).forEach(function(elId){
+    var rid = parseInt(elId.replace('rcpt-'+oid+'_',''));
+    if(rids.indexOf(rid) < 0) container.removeChild(existingIds[elId]);
+  });
+
   rids.forEach(function(rid, ridx) {
+    // 이미 존재하면 번호(뱃지)만 업데이트
+    var existingEl = document.getElementById('rcpt-'+oid+'_'+rid);
+    if(existingEl) {
+      var badge = existingEl.querySelector('.rcpt-badge');
+      if(badge) badge.textContent = ridx+1;
+      var title = existingEl.querySelector('.rcpt-title');
+      if(title) title.textContent = '받는 사람 ' + (ridx+1);
+      // 삭제 버튼 표시/숨김
+      var delBtn = existingEl.querySelector('.bdel-sm');
+      if(delBtn) delBtn.style.display = rids.length > 1 ? '' : 'none';
+      return; // 기존 블록은 건드리지 않음
+    }
     var rnum = ridx+1;
     var key = oid+'_'+rid;
     var div = document.createElement('div');
@@ -1758,13 +1830,17 @@ function copyAddr(){
     fallbackCopy(addr);
   }
 }
-function fallbackCopy(text){
+function fallbackCopy(text, msgEl){
   var ta = document.createElement('textarea');
   ta.value = text;
   ta.style.position='fixed';ta.style.opacity='0';
   document.body.appendChild(ta);
   ta.focus();ta.select();
-  try{ document.execCommand('copy'); showCopied(); }catch(e){}
+  try{
+    document.execCommand('copy');
+    if(msgEl){ msgEl.textContent='✓ 이메일 주소가 복사되었습니다'; setTimeout(function(){msgEl.textContent='';},2500); }
+    else showCopied();
+  }catch(e){}
   document.body.removeChild(ta);
 }
 function showCopied(){
@@ -1850,25 +1926,24 @@ function closeBulkModal() {
 }
 
 function copyEmail() {
-  var email = 'santar7021@gmail.com';
+  document.getElementById('callConfirmOverlay').classList.add('show');
+}
+function confirmCallYes() {
+  document.getElementById('callConfirmOverlay').classList.remove('show');
+  var email = 'rudia0707@naver.com';
   var msg = document.getElementById('bulkCopyMsg');
   if (navigator.clipboard && window.isSecureContext) {
     navigator.clipboard.writeText(email).then(function(){
       msg.textContent = '✓ 이메일 주소가 복사되었습니다';
       setTimeout(function(){ msg.textContent = ''; }, 2500);
-    });
+    }).catch(function(){ fallbackCopy(email, msg); });
   } else {
-    var ta = document.createElement('textarea');
-    ta.value = email;
-    ta.style.position = 'fixed'; ta.style.opacity = '0';
-    document.body.appendChild(ta);
-    ta.focus(); ta.select();
-    try { document.execCommand('copy');
-      msg.textContent = '✓ 이메일 주소가 복사되었습니다';
-      setTimeout(function(){ msg.textContent = ''; }, 2500);
-    } catch(e) {}
-    document.body.removeChild(ta);
+    fallbackCopy(email, msg);
   }
+}
+function confirmCallNo() {
+  document.getElementById('callConfirmOverlay').classList.remove('show');
+  closeBulkModal();
 }
 
 // ── 초기 ──
@@ -1908,6 +1983,19 @@ loadProductsForOrder();
       <div class="guide-arrow">→ <span class="guide-tag">주문 추가</span> 버튼을 이용해 주세요</div>
     </div>
     <button class="guide-ok-btn" onclick="closeGuideAndGo()">확인 · 주문 시작하기 🍐</button>
+  </div>
+</div>
+
+<!-- ── 통화 확인 팝업 ── -->
+<div class="call-confirm-overlay" id="callConfirmOverlay">
+  <div class="call-confirm-modal">
+    <div class="call-confirm-icon">📞</div>
+    <div class="call-confirm-title">광진농원 관리자와<br>통화를 하셨나요?</div>
+    <div class="call-confirm-desc">대량 주문은 사전 통화 후<br>이메일로 내역을 보내주셔야 합니다.</div>
+    <div class="call-confirm-btns">
+      <button class="call-confirm-btn yes" onclick="confirmCallYes()">예, 통화했습니다</button>
+      <button class="call-confirm-btn no" onclick="confirmCallNo()">아니오</button>
+    </div>
   </div>
 </div>
 </body>
