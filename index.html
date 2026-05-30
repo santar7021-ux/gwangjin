@@ -1222,7 +1222,7 @@ html, body {
 <!-- ── PAGE 2: 배송·메모 ── -->
 <div class="page" id="p2">
   <div style="height:6px"></div>
-  <div class="slbl"><div class="sbar"></div><span class="st">배송 희망일</span><span class="ss">희망일 미 기재 시 주문일로부터 3~4일 소요</span></div>
+  <div class="slbl"><div class="sbar"></div><span class="st">배송 희망일</span><span class="ss">아래 일자를 클릭하여 선택하지 않으면 주문일자로부터 3~4일 소요</span></div>
   <div class="card"><div class="ci">
     <div class="f">
       <div class="fl">희망 일자 선택</div>
@@ -1683,9 +1683,12 @@ function updateOrderSummary() {
 
   content.innerHTML = rows
     + '<div style="border-top:1px solid #D8CEC0;margin-top:6px;padding-top:6px;display:flex;justify-content:space-between;font-size:12px;color:#5A4830;">'
-      + '<span>택배비 합계</span><span style="font-weight:700;">' + totalDelivAmt.toLocaleString() + '원 (' + totalBoxes + '박스)</span>'
+      + '<span>상품 금액</span><span style="font-weight:700;">' + totalProductAmt.toLocaleString() + '원</span>'
     + '</div>'
-    + '<div style="display:flex;justify-content:space-between;font-size:14px;font-weight:800;color:#6A9050;padding-top:5px;">'
+    + '<div style="display:flex;justify-content:space-between;font-size:12px;color:#5A4830;padding-top:3px;">'
+      + '<span>택배비 (' + totalBoxes + '박스)</span><span style="font-weight:700;">' + totalDelivAmt.toLocaleString() + '원</span>'
+    + '</div>'
+    + '<div style="display:flex;justify-content:space-between;font-size:14px;font-weight:800;color:#6A9050;border-top:1px solid #D8CEC0;margin-top:5px;padding-top:6px;">'
       + '<span>총 주문 금액</span><span>₩ ' + grandTotal.toLocaleString() + '</span>'
     + '</div>';
   box.style.display = 'block';
@@ -1792,6 +1795,48 @@ function bldSum(){
     });
     h+='</div>';
   });
+  // 금액 요약 계산
+  var _totalProd = 0; var _totalBoxes = 0; var _hasProd = false;
+  var _amtRows = '';
+  orderIds.forEach(function(oid, oidx) {
+    var rids2 = rcptData[oid]||[];
+    rids2.forEach(function(rid) {
+      var key = oid+'_'+rid;
+      var psv2 = (document.getElementById('ps-'+key)||{}).value||'';
+      if(!psv2) return;
+      var qty2 = parseInt((document.getElementById('qty-'+key)||{}).value)||1;
+      var unit2 = PRICE_MAP[psv2]||0;
+      if(unit2 > 0) {
+        _hasProd = true;
+        var rn2 = ((document.getElementById('rn-'+key)||{}).value||'').trim()||'받는사람';
+        var rowAmt = (unit2 + DELIVERY) * qty2;
+        _totalProd += unit2 * qty2;
+        _totalBoxes += qty2;
+        _amtRows += '<div class="sumr"><span class="sumk">'+(oidx+1)+'주문 · '+rn2+'</span><span class="sumv" style="color:#6A9050;font-weight:700;">'+rowAmt.toLocaleString()+'원</span></div>';
+      }
+    });
+  });
+  if(_hasProd) {
+    var _totalDeliv = DELIVERY * _totalBoxes;
+    var _grand = _totalProd + _totalDeliv;
+    h += '<div class="sumblk" style="border:1.5px solid rgba(106,144,80,.3);">'
+      + '<div class="sumhd" style="background:linear-gradient(90deg,#3B5A28,#6A9050);color:#fff;">💰 주문 금액 요약</div>'
+      + _amtRows
+      + '<div class="sumr" style="border-top:1px solid #EDE5D8;margin-top:2px;padding-top:4px;">'
+        + '<span class="sumk">상품 금액</span>'
+        + '<span class="sumv">'+_totalProd.toLocaleString()+'원</span>'
+      + '</div>'
+      + '<div class="sumr">'
+        + '<span class="sumk">택배비 ('+_totalBoxes+'박스)</span>'
+        + '<span class="sumv">'+_totalDeliv.toLocaleString()+'원</span>'
+      + '</div>'
+      + '<div class="sumr" style="border-top:1px solid #D8CEC0;margin-top:4px;padding-top:6px;">'
+        + '<span class="sumk" style="font-size:14px;font-weight:800;color:#3B2A1A;">총 주문 금액</span>'
+        + '<span class="sumv" style="font-size:15px;font-weight:800;color:#6A9050;">₩ '+_grand.toLocaleString()+'</span>'
+      + '</div>'
+    + '</div>';
+  }
+
   h+='<div class="sumblk"><div class="sumhd">배송 · 요청사항</div>'
     +'<div class="sumr"><span class="sumk">배송 희망일</span><span class="sumv">'+(dd||'주문일로부터 3~4일 소요')+'</span></div>'
     +'<div class="sumr"><span class="sumk">요청사항</span><span class="sumv">'+(mm||'없음')+'</span></div></div>';
