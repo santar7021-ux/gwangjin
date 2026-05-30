@@ -1003,7 +1003,7 @@ html, body {
   <div class="intro-gold-bar"></div>
   <div class="intro-tabs">
     <button class="intro-tab act" id="itab-order" onclick="switchIntroTab('order')">📝 주문서 작성</button>
-    <button class="intro-tab" id="itab-history" onclick="switchIntroTab('history')">📦 내 주문 내역</button>
+    <button class="intro-tab" id="itab-history" onclick="switchIntroTab('history')">📦 주문 내역</button>
   </div>
   <div id="intro-order-panel">
   <div class="intro-body">
@@ -1293,14 +1293,14 @@ html, body {
 <!-- ── PAGE 2: 배송·메모 ── -->
 <div class="page" id="p2">
   <div style="height:6px"></div>
-  <div class="slbl"><div class="sbar"></div><span class="st">배송 희망일</span><span class="ss">아래 일자를 클릭하여 선택하지 않으면 주문일자로부터 3~4일 소요</span></div>
+  <div class="slbl"><div class="sbar"></div><span class="st">배송 희망일</span><span class="ss">별도 희망일은 아래 날짜 눌러주세요 (미선택 3~4일 소요)</span></div>
   <div class="card"><div class="ci">
     <div class="f">
       <div class="fl">희망 일자 선택</div>
       <input type="date" id="ddate">
     </div>
   </div></div>
-  <div class="slbl" style="margin-top:4px"><div class="sbar"></div><span class="st">추가 요청사항</span><span class="ss">선물·포장 등</span></div>
+  <div class="slbl" style="margin-top:4px"><div class="sbar"></div><span class="st">추가 요청사항</span><span class="ss">택배 주문 시 노랑 천 포장 불가</span></div>
   <div class="card"><div class="ci">
     <textarea id="memo" placeholder="예) 선물 포장 부탁드립니다 / 부재 시 경비실에 맡겨 주세요"></textarea>
   </div></div>
@@ -1426,7 +1426,7 @@ function buildProductOptions() {
       var delivery  = p.delivery || 4000;
       // 단가가 있을 때만 합산 금액 표시, 없으면 빈칸
       var priceStr = unitPrice > 0
-        ? '  ' + (unitPrice + delivery).toLocaleString() + '원'
+        ? '  ' + unitPrice.toLocaleString() + '원'
         : '';
       var stockStr = (p.stock > 0 && p.stock <= 10) ? ' (재고 '+p.stock+'박스)' : '';
       var label = p.name + priceStr + stockStr;
