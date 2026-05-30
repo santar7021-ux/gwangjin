@@ -1150,9 +1150,9 @@ html, body {
 
 <!-- ── STEP NAV ── -->
 <div class="snav" id="snav">
-  <button class="sb act" onclick="gs(1)"><div class="sb-c">1</div><div class="sb-t">주문 입력</div></button>
-  <button class="sb" onclick="gs(2)"><div class="sb-c">2</div><div class="sb-t">배송·메모</div></button>
-  <button class="sb" onclick="gs(3)"><div class="sb-c">3</div><div class="sb-t">최종확인</div></button>
+  <button class="sb act" onclick="gsSafe(1)"><div class="sb-c">1</div><div class="sb-t">주문 입력</div></button>
+  <button class="sb" onclick="gsSafe(2)"><div class="sb-c">2</div><div class="sb-t">배송·메모</div></button>
+  <button class="sb" onclick="gsSafe(3)"><div class="sb-c">3</div><div class="sb-t">최종확인</div></button>
 </div>
 
 <!-- ── PAGE 1: 주문 목록 ── -->
@@ -1167,17 +1167,11 @@ html, body {
 <!-- ── PAGE 2: 배송·메모 ── -->
 <div class="page" id="p2">
   <div style="height:6px"></div>
-  <div class="slbl"><div class="sbar"></div><span class="st">배송 희망일</span><span class="ss">미선택 시 최대한 빠르게</span></div>
+  <div class="slbl"><div class="sbar"></div><span class="st">배송 희망일</span><span class="ss">희망일 미 기재 시 주문일로부터 3~4일 소요</span></div>
   <div class="card"><div class="ci">
     <div class="f">
-      <div class="fl">날짜 <span class="opt">선택 사항</span></div>
+      <div class="fl">희망 일자 선택</div>
       <input type="date" id="ddate">
-      <div class="chips">
-        <button class="chip" type="button" onclick="setd(3,this)">3일 후</button>
-        <button class="chip" type="button" onclick="setd(5,this)">5일 후</button>
-        <button class="chip" type="button" onclick="setd(7,this)">1주일 후</button>
-        <button class="chip" type="button" onclick="setd(14,this)">2주일 후</button>
-      </div>
     </div>
   </div></div>
   <div class="slbl" style="margin-top:4px"><div class="sbar"></div><span class="st">추가 요청사항</span><span class="ss">선물·포장 등</span></div>
@@ -1277,8 +1271,7 @@ function loadProductsForOrder() {
           var curVal = sel.value;
           var key = sel.id.replace('ps-','');
           sel.innerHTML = '<option value="">상품을 선택해 주세요</option>'
-            + buildProductOptions()
-            + '<option value="custom">직접 입력</option>';
+            + buildProductOptions();
           sel.value = curVal; // 선택값 유지
         });
       }
@@ -1396,12 +1389,21 @@ function addRcpt(oid) {
   var rid = rcptCount;
   if(!rcptData[oid]) rcptData[oid]=[];
   rcptData[oid].push(rid);
+  // renderOrders 전체 재렌더 대신 rcpt만 갱신 (보내는사람 입력값 보존)
   renderRcpts(oid);
+  // 추가된 받는사람으로 스크롤
+  setTimeout(function(){
+    var list = document.getElementById('rcpt-list-'+oid);
+    if(list){
+      var blocks = list.querySelectorAll('.rcpt-block');
+      if(blocks.length > 0) blocks[blocks.length-1].scrollIntoView({behavior:'smooth',block:'start'});
+    }
+  }, 100);
 }
 
 function delRcpt(oid, rid) {
   rcptData[oid] = rcptData[oid].filter(function(x){return x!==rid;});
-  renderRcpts(oid);
+  renderRcpts(oid); // 보내는사람 보존하며 받는사람만 갱신
 }
 
 function renderRcpts(oid) {
@@ -1459,12 +1461,8 @@ function renderRcpts(oid) {
           +'<select class="prod-select" id="ps-'+key+'" onchange="onProdChange(this,\''+key+'\')">'
           +'<option value="">상품을 선택해 주세요</option>'
           +buildProductOptions()
-          +'<option value="custom">직접 입력</option>'
           +'</select>'
-          +'<div class="cuf" id="cuf-'+key+'">'
-            +'<input type="text" id="cu-'+key+'" placeholder="상품명 직접 입력" maxlength="50" '
-            +'style="width:100%;padding:11px 13px;border:1px solid #D8CEC0;border-radius:10px;font-size:14px;font-family:inherit;outline:none;background:#FAF8F4;">'
-          +'</div>'
+
           +'<div class="qty-row">'
             +'<span class="qty-label">수량</span>'
             +'<div class="qty-ctrl">'
@@ -1590,9 +1588,7 @@ function vStep(n){
         if(!aOk('r'+key)){sErr('fra-'+key,true);ok=false;}
         else sErr('fra-'+key,false);
         var psv=(document.getElementById('ps-'+key)||{}).value||'';
-        var isCust=psv==='custom';
-        var cu=((document.getElementById('cu-'+key)||{}).value||'').trim();
-        var pb=!psv||(isCust&&!cu);
+        var pb=!psv;
         sErr('frpr-'+key,pb); if(pb) ok=false;
       });
     });
@@ -1615,17 +1611,21 @@ function gs(n){
   });
   cur=n; if(n===3)bldSum(); window.scrollTo(0,0);
 }
+// 스텝 버튼 클릭: 이전 단계로만 이동 가능 (앞 단계는 ns()로만)
+function gsSafe(n){
+  if(n < cur) gs(n); // 이전 단계로 되돌아가기만 허용
+}
 function ns(n){if(vStep(n))gs(n+1);}
 
 // ── 날짜 ──
 var todayStr=(function(){var d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');})();
-document.getElementById('ddate').min=todayStr;
-function setd(d,el){
-  var dt=new Date(); dt.setDate(dt.getDate()+d);
-  document.getElementById('ddate').value=dt.getFullYear()+'-'+String(dt.getMonth()+1).padStart(2,'0')+'-'+String(dt.getDate()).padStart(2,'0');
-  document.querySelectorAll('.chip').forEach(function(c){c.classList.remove('on');});
-  el.classList.add('on');
-}
+// 기본값: 오늘+3일
+(function(){
+  var d3=new Date(); d3.setDate(d3.getDate()+3);
+  var d3str=d3.getFullYear()+'-'+String(d3.getMonth()+1).padStart(2,'0')+'-'+String(d3.getDate()).padStart(2,'0');
+  var ddEl=document.getElementById('ddate');
+  if(ddEl){ ddEl.min=todayStr; ddEl.value=d3str; }
+})();
 
 // ── 요약 ──
 function bldSum(){
@@ -1662,7 +1662,7 @@ function bldSum(){
     h+='</div>';
   });
   h+='<div class="sumblk"><div class="sumhd">배송 · 요청사항</div>'
-    +'<div class="sumr"><span class="sumk">배송 희망일</span><span class="sumv">'+(dd||'미지정 (최대한 빠르게)')+'</span></div>'
+    +'<div class="sumr"><span class="sumk">배송 희망일</span><span class="sumv">'+(dd||'주문일로부터 3~4일 소요')+'</span></div>'
     +'<div class="sumr"><span class="sumk">요청사항</span><span class="sumv">'+(mm||'없음')+'</span></div></div>';
   document.getElementById('suma').innerHTML=h;
 }
@@ -1787,7 +1787,7 @@ function qtyChange(key, delta) {
   var input = document.getElementById('qty-'+key);
   if(!input) return;
   var cur = parseInt(input.value)||1;
-  var next = Math.max(1, Math.min(999, cur + delta));
+  var next = Math.max(1, Math.min(10, cur + delta));
   input.value = next;
   // 맞아요를 이미 클릭한 key는 팝업 안 뜸
   if(next >= 2 && !_qtyConfirmed[key]) {
@@ -1799,15 +1799,7 @@ function qtyChange(key, delta) {
 
 // ── 상품 드롭다운 변경 ──
 function onProdChange(sel, key) {
-  var cuf = document.getElementById('cuf-'+key);
-  if(!cuf) return;
-  if(sel.value === 'custom') {
-    cuf.classList.add('show');
-  } else {
-    cuf.classList.remove('show');
-    var cu = document.getElementById('cu-'+key);
-    if(cu) cu.value = '';
-  }
+  // custom 제거됨 - 빈 함수 유지
 }
 
 // ── 수량 팝업 ──
