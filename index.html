@@ -1448,18 +1448,35 @@ var PRODUCT_LIST = [
   {name:'신고 13과', price:30000, delivery:4000, stock:999, visible:true}
 ];
 
-// ── 날짜 표시 포맷 변환 ──
+// ── 날짜 표시 포맷 변환 (UTC→KST +9시간) ──
 function fmtDate(str, dateOnly) {
   if(!str || str === '미지정') return str||'';
-  var s = str.toString().replace('T',' ');
+  var s = str.toString().replace('T',' ').trim();
   var d = s.slice(0,10).split('-');
   if(d.length < 3) return str;
   var y = parseInt(d[0]), mo = parseInt(d[1]), day = parseInt(d[2]);
-  var timeStr = (s.length > 10) ? s.slice(11,16) : '';
-  if(timeStr && !dateOnly) {
-    return y + '년 ' + mo + '월 ' + day + '일 ' + timeStr;
+
+  // 날짜만 표시 (시간 제외)
+  if(dateOnly || s.length <= 10) {
+    return y + '년 ' + mo + '월 ' + day + '일';
   }
-  return y + '년 ' + mo + '월 ' + day + '일';
+
+  // 시간 파싱 후 +9시간 (UTC→KST)
+  var tp = s.slice(11,16).split(':');
+  var hh = parseInt(tp[0]||0);
+  var mm = parseInt(tp[1]||0);
+  hh += 9;  // KST = UTC + 9
+
+  // 날짜 넘김 처리
+  if(hh >= 24) {
+    hh -= 24; day++;
+    var dim = new Date(y, mo, 0).getDate();
+    if(day > dim) { day = 1; mo++; }
+    if(mo > 12) { mo = 1; y++; }
+  }
+
+  var p2 = function(n){ return String(n).padStart(2,'0'); };
+  return y + '년 ' + mo + '월 ' + day + '일 ' + p2(hh) + ':' + p2(mm);
 }
 
 var PRICE_MAP = {};
@@ -2181,12 +2198,11 @@ function bldSum(){
 
 function sub(){
   // ── 데이터 수집 ──
-  var nowRaw = new Date();
-  // 한국 시간(KST = UTC+9)으로 표시
-  var now = new Date(nowRaw.getTime() + 9 * 60 * 60 * 1000);
+  var now = new Date();
   var pad = function(n){return String(n).padStart(2,'0');};
-  var submittedAt = now.getUTCFullYear()+'-'+pad(now.getUTCMonth()+1)+'-'+pad(now.getUTCDate())
-    +' '+pad(now.getUTCHours())+':'+pad(now.getUTCMinutes())+':'+pad(now.getUTCSeconds());
+  // UTC로 전송 → Apps Script/HTML 표시 시 KST +9 적용
+  var submittedAt = now.getFullYear()+'-'+pad(now.getMonth()+1)+'-'+pad(now.getDate())
+    +' '+pad(now.getHours())+':'+pad(now.getMinutes())+':'+pad(now.getSeconds());
   var orderNo = 'ORD-'+now.getTime();
   var dd = document.getElementById('ddate').value||'미지정';
   var mm = (document.getElementById('memo').value||'').trim()||'없음';
