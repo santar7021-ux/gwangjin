@@ -781,19 +781,27 @@ html, body {
 .intro-tabs{
   display:flex;background:#fff;
   border-bottom:2px solid #D8CEC0;
+  width:100%;
 }
 .intro-tab{
-  flex:1;padding:10px 4px 11px;text-align:center;
+  flex:1;padding:10px 8px 11px;text-align:center;
   font-size:13px;font-weight:600;color:#9A8870;
   border:none;background:none;cursor:pointer;
   border-bottom:2px solid transparent;
   margin-bottom:-2px;font-family:inherit;
   transition:all .2s;
   display:flex;flex-direction:column;align-items:center;gap:4px;
+  min-width:0;
 }
 .intro-tab.act{color:#3B2A1A;border-bottom-color:#6A9050;}
-.intro-tab-ico{font-size:22px;line-height:1;}
-.intro-tab-txt{font-size:14px;font-weight:700;line-height:1;}
+.intro-tab-ico{font-size:22px;line-height:1;flex-shrink:0;}
+.intro-tab-txt{
+  font-size:14px;font-weight:700;line-height:1.2;
+  white-space:nowrap;  /* 줄바꿈 완전 방지 */
+  overflow:hidden;
+  text-overflow:ellipsis;
+  width:100%;
+}
 
 /* ── 제출 확인 팝업 ── */
 .submit-confirm-overlay{
@@ -1900,7 +1908,7 @@ function renderOrders() {
       +'<div class="order-body">'
         // 보내는 사람
         +'<div class="order-section-label"><span class="arrow-icon">▶</span> 보내는 사람</div>'
-        +'<div class="f"><div class="fl">성명 <span class="opt">미입력 시 "주문자"로 표기</span></div>'
+        +'<div class="f"><div class="fl">성명 <span class="req">*</span></div>'
           +'<input type="text" id="sn-'+oid+'" placeholder="홍길동" maxlength="20" autocomplete="name">'
         +'</div>'
         +'<div class="divr"></div>'
@@ -2008,6 +2016,11 @@ function vStep(n){
     if(!orderIds.length){alert('주문을 1건 이상 추가해 주세요.');return false;}
     var ok=true;
     orderIds.forEach(function(oid){
+      // 보내는 사람 성명 (필수)
+      var snEl=document.getElementById('sn-'+oid);
+      var snv=snEl?snEl.value.trim():'';
+      if(snEl) snEl.classList.toggle('err',!snv);
+      if(!snv) ok=false;
       // 보내는 사람 연락처
       var spv=(document.getElementById('sp-'+oid)||{}).value||'';
       sErr('fsp-'+oid,!phOk(spv));
@@ -2072,7 +2085,7 @@ function bldSum(){
   var mm=(document.getElementById('memo').value||'').trim();
   var h='';
   orderIds.forEach(function(oid,idx){
-    var sn=((document.getElementById('sn-'+oid)||{}).value||'').trim()||'주문자';
+    var sn=((document.getElementById('sn-'+oid)||{}).value||'').trim();
     var sp=(document.getElementById('sp-'+oid)||{}).value||'';
     var sa=gA('s'+oid);
     h+='<div class="sumblk">'
