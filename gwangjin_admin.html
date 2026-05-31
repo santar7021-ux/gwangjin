@@ -1298,7 +1298,7 @@ function renderOrders() {
       var isDone = orders.every(function(o){ return o.status === 'DONE'; });
       var statusClass = isNew ? 'new' : isDone ? 'done' : '';
       var statusText  = isNew ? '신규' : '확인완료';
-      var timeStr = first.submittedAt ? first.submittedAt.slice(0,16) : '';
+      var timeStr = first.submittedAt ? fmtDate(first.submittedAt.slice(0,16)) : '';
       var rowList = orders.map(function(o){ return o.row; });
 
       // 금액 계산
@@ -1347,7 +1347,7 @@ function renderOrders() {
 
       // 배송일·요청
       if(first.delivDate && first.delivDate!=='미지정') {
-        html += '<div class="card-row"><span class="card-k">배송일</span><span class="card-v">' + first.delivDate + '</span></div>';
+        html += '<div class="card-row"><span class="card-k">배송일</span><span class="card-v">' + fmtDate(first.delivDate) + '</span></div>';
       }
       if(first.memo && first.memo!=='없음') {
         html += '<div class="card-row"><span class="card-k">요청</span><span class="card-v">' + first.memo + '</span></div>';
@@ -1379,7 +1379,7 @@ function renderOrders() {
       if(isNew) {
         html += '<button class="btn-confirm" onclick="confirmOrderGroup([' + rowList.join(',') + '], this)">✓ 확인 완료</button>';
       } else {
-        html += '<div class="btn-confirmed">✓ 확인됨' + (first.confirmedAt ? '<div class="confirmed-time">' + first.confirmedAt + '</div>' : '') + '</div>';
+        html += '<div class="btn-confirmed">✓ 확인됨' + (first.confirmedAt ? '<div class="confirmed-time">' + fmtDate(first.confirmedAt) + '</div>' : '') + '</div>';
       }
       var _dname = (first.senderName||'주문자').replace(/['"]/g,'');
       html += '<button class="btn-delete" onclick="deleteOrderGroup([' + rowList.join(',') + '],this)" data-name="' + _dname + '">🗑 삭제</button>';
@@ -1463,6 +1463,20 @@ function confirmOrder(row, btn) {
 
 
 // ── 상품 단가 & 금액 계산 ──
+
+// ── 날짜 표시 포맷 변환 ──
+function fmtDate(str) {
+  if(!str || str === '미지정') return str||'';
+  // "2026-05-31 12:59:00" 또는 "2026-05-31T12:59"
+  var s = str.replace('T',' ');
+  var d = s.slice(0,10).split('-');
+  if(d.length < 3) return str;
+  var y = d[0], m = parseInt(d[1]), dd = parseInt(d[2]);
+  var time = s.length > 10 ? s.slice(11,16) : '';
+  var base = y + '년 ' + m + '월 ' + dd + '일';
+  return time ? base + ' ' + time : base;
+}
+
 var PRICE_MAP = {
   '신고 9과':  50000,
   '신고 10과': 45000,

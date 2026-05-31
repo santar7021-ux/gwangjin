@@ -1447,6 +1447,20 @@ var PRODUCT_LIST = [
   {name:'신고 12과', price:35000, delivery:4000, stock:999, visible:true},
   {name:'신고 13과', price:30000, delivery:4000, stock:999, visible:true}
 ];
+
+// ── 날짜 표시 포맷 변환 ──
+function fmtDate(str) {
+  if(!str || str === '미지정') return str||'';
+  // "2026-05-31 12:59:00" 또는 "2026-05-31T12:59"
+  var s = str.replace('T',' ');
+  var d = s.slice(0,10).split('-');
+  if(d.length < 3) return str;
+  var y = d[0], m = parseInt(d[1]), dd = parseInt(d[2]);
+  var time = s.length > 10 ? s.slice(11,16) : '';
+  var base = y + '년 ' + m + '월 ' + dd + '일';
+  return time ? base + ' ' + time : base;
+}
+
 var PRICE_MAP = {};
 var DELIVERY = 4000;
 
@@ -1611,7 +1625,7 @@ function renderMyOrders(orders, nos) {
     var isDone = grp.every(function(o){ return o.status==='DONE'; });
     var statusText = isDone ? '확인완료' : '접수 완료';
     var statusCls  = isDone ? 'done' : 'new';
-    var timeStr = first.submittedAt ? first.submittedAt.slice(0,16) : '';
+    var timeStr = first.submittedAt ? fmtDate(first.submittedAt.slice(0,16)) : '';
 
     // 금액 계산
     var totalAmt = 0;
@@ -1625,7 +1639,7 @@ function renderMyOrders(orders, nos) {
       + '<div class="my-order-hd">'
         + '<div>'
           + '<div class="my-order-no">' + (first.orderIndex||'주문') + ' · ' + (first.senderName||'주문자') + '</div>'
-          + '<div class="my-order-time">' + timeStr + '</div>'
+          + '<div class="my-order-time">' + fmtDate(timeStr) + '</div>'
         + '</div>'
         + '<span class="my-order-status ' + statusCls + '">' + statusText + '</span>'
       + '</div>'
@@ -1650,7 +1664,7 @@ function renderMyOrders(orders, nos) {
     });
 
     if(first.delivDate && first.delivDate!=='미지정') {
-      html += '<div class="my-order-row" style="margin-top:4px;"><span class="my-order-k">배송일</span><span class="my-order-v">' + first.delivDate + '</span></div>';
+      html += '<div class="my-order-row" style="margin-top:4px;"><span class="my-order-k">배송일</span><span class="my-order-v">' + fmtDate(first.delivDate) + '</span></div>';
     }
 
     // 총 금액
@@ -2159,7 +2173,7 @@ function bldSum(){
   }
 
   h+='<div class="sumblk"><div class="sumhd">배송 · 요청사항</div>'
-    +'<div class="sumr"><span class="sumk">배송 희망일</span><span class="sumv">'+(dd||'주문일로부터 3~4일 소요')+'</span></div>'
+    +'<div class="sumr"><span class="sumk">배송 희망일</span><span class="sumv">'+(dd?fmtDate(dd):'주문일로부터 3~4일 소요')+'</span></div>'
     +'<div class="sumr"><span class="sumk">요청사항</span><span class="sumv">'+(mm||'없음')+'</span></div></div>';
   document.getElementById('suma').innerHTML=h;
 }
