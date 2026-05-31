@@ -1347,7 +1347,7 @@ function renderOrders() {
 
       // 배송일·요청
       if(first.delivDate && first.delivDate!=='미지정') {
-        html += '<div class="card-row"><span class="card-k">배송일</span><span class="card-v">' + fmtDate(first.delivDate) + '</span></div>';
+        html += '<div class="card-row"><span class="card-k">배송일</span><span class="card-v">' + fmtDate(first.delivDate, true) + '</span></div>';
       }
       if(first.memo && first.memo!=='없음') {
         html += '<div class="card-row"><span class="card-k">요청</span><span class="card-v">' + first.memo + '</span></div>';
@@ -1465,16 +1465,17 @@ function confirmOrder(row, btn) {
 // ── 상품 단가 & 금액 계산 ──
 
 // ── 날짜 표시 포맷 변환 ──
-function fmtDate(str) {
+function fmtDate(str, dateOnly) {
   if(!str || str === '미지정') return str||'';
-  // "2026-05-31 12:59:00" 또는 "2026-05-31T12:59"
-  var s = str.replace('T',' ');
+  var s = str.toString().replace('T',' ');
   var d = s.slice(0,10).split('-');
   if(d.length < 3) return str;
-  var y = d[0], m = parseInt(d[1]), dd = parseInt(d[2]);
-  var time = s.length > 10 ? s.slice(11,16) : '';
-  var base = y + '년 ' + m + '월 ' + dd + '일';
-  return time ? base + ' ' + time : base;
+  var y = parseInt(d[0]), mo = parseInt(d[1]), day = parseInt(d[2]);
+  var timeStr = (s.length > 10) ? s.slice(11,16) : '';
+  if(timeStr && !dateOnly) {
+    return y + '년 ' + mo + '월 ' + day + '일 ' + timeStr;
+  }
+  return y + '년 ' + mo + '월 ' + day + '일';
 }
 
 var PRICE_MAP = {
