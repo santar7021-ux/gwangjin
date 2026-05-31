@@ -635,6 +635,25 @@ html, body {
 .card-total-k{font-weight:600;}
 .card-total-v{font-weight:600;color:#3B2A1A;}
 .card-total-v.total{font-size:14px;font-weight:800;color:#6A9050;}
+
+/* ── 송장 요청 버튼 ── */
+.btn-invoice{
+  flex:1;padding:11px 6px;border:1.5px solid #4A7CC0;
+  color:#4A7CC0;background:rgba(74,124,192,.08);
+  border-radius:10px;font-size:12px;font-weight:700;
+  cursor:pointer;font-family:inherit;transition:all .15s;
+  white-space:nowrap;
+}
+.btn-invoice:hover{background:rgba(74,124,192,.18);}
+.btn-invoice:disabled{opacity:.5;cursor:not-allowed;}
+
+/* ── 카드 하단 상품 요약 ── */
+.card-product-summary{
+  padding:6px 14px 10px;
+  font-size:12px;color:#6A9050;font-weight:600;
+  border-top:1px solid var(--cs);
+  line-height:1.6;
+}
 </style>
 </head>
 <body>
@@ -1375,12 +1394,20 @@ function renderOrders() {
       + '</div>';
 
       // 확인/삭제 버튼
+      // 상품 요약 문자열 생성
+      var _prodSummary = orders.map(function(o){
+        return o.product||'';
+      }).filter(Boolean).join(' / ');
+
+      html += '<div class="card-product-summary">📦 ' + _prodSummary + '</div>';
       html += '<div class="card-foot">';
       if(isNew) {
-        html += '<button class="btn-confirm" onclick="confirmOrderGroup([' + rowList.join(',') + '], this)">✓ 확인 완료</button>';
+        html += '<button class="btn-confirm" style="flex:0.8;font-size:12px;" onclick="confirmOrderGroup([' + rowList.join(',') + '], this)">✓ 확인 완료</button>';
       } else {
-        html += '<div class="btn-confirmed">✓ 확인됨' + (first.confirmedAt ? '<div class="confirmed-time">' + fmtDate(first.confirmedAt) + '</div>' : '') + '</div>';
+        html += '<div class="btn-confirmed" style="flex:0.8;">✓ 확인됨' + (first.confirmedAt ? '<div class="confirmed-time">' + fmtDate(first.confirmedAt) + '</div>' : '') + '</div>';
       }
+      var _invoiceKey = first.orderNo + '::' + (first.orderIndex||'');
+      html += '<button class="btn-invoice" data-ikey="' + _invoiceKey + '" onclick="requestInvoiceByKey(this)">📧 송장 요청</button>';
       var _dname = (first.senderName||'주문자').replace(/['"]/g,'');
       html += '<button class="btn-delete" onclick="deleteOrderGroup([' + rowList.join(',') + '],this)" data-name="' + _dname + '">🗑 삭제</button>';
       html += '</div></div>';
@@ -2230,6 +2257,64 @@ function pmSaveProducts() {
     btn.disabled = false; btn.textContent = '💾 저장하기';
     showToast('저장 실패 - 네트워크 오류');
   });
+}
+
+
+// ══════════════════════════════
+// 송장 요청 이메일 발송
+// ══════════════════════════════
+function requestInvoiceByKey(btn) {
+  var key = btn.getAttribute('data-ikey');
+  // allOrders에서 해당 그룹 찾기
+  var orders = allOrders.filter(function(o){
+    return ((o.orderNo||'') + '::' + (o.orderIndex||'')) === key;
+  });
+  if(!orders || orders.length === 0) { showToast('주문 데이터를 찾을 수 없어요.'); return; }
+  var first = orders[0];
+
+  // 제목: 광진농원 M월 D일 주문 전달드립니다.
+  var now = new Date();
+  var kstNow = new Date(now.getTime() + 9*60*60*1000);
+  var mo  = kstNow.getUTCMonth() + 1;
+  var day = kstNow.getUTCDate();
+  var subject = encodeURIComponent('광진농원 ' + mo + '월 ' + day + '일 주문 전달드립니다.');
+
+  // 본문 구성 (금액/택배비 제외)
+  var body = '안녕하세요. 광진농원 배송 주문 내역 전달드립니다.\n\n';
+
+  body += '[보내는 사람]\n';
+  body += '성명: ' + (first.senderName||'-') + '\n';
+  body += '연락처: ' + (first.senderPhone||'-') + '\n';
+  body += '주소: ' + (first.senderAddr||'-') + '\n\n';
+
+  orders.forEach(function(o, i) {
+    var p = (o.product||'').replace(/\s*\d+박스$/, '');  // 상품명
+    var qm = (o.product||'').match(/(\d+)박스/);
+    var qty = qm ? qm[1] : '1';
+    body += '[받는 사람 ' + (i+1) + ']\n';
+    body += '성명: ' + (o.rcptName||'-') + '\n';
+    body += '연락처: ' + (o.rcptPhone||'-') + '\n';
+    body += '주소: ' + (o.rcptAddr||'-') + '\n';
+    body += '상품: ' + p + ', 수량: ' + qty + '\n';
+    if(o.delivDate && o.delivDate !== '미지정') {
+      body += '배송 희망일: ' + o.delivDate + '\n';
+    }
+    body += '\n';
+  });
+
+  if(first.memo && first.memo !== '없음') {
+    body += '[요청사항]\n' + first.memo + '\n';
+  }
+
+  body += '\n감사합니다.\n광진농원 드림';
+
+  var to = 'santar7021@naver.com';
+  var mailto = 'mailto:' + to
+    + '?subject=' + subject
+    + '&body=' + encodeURIComponent(body);
+
+  // Gmail 앱으로 열기
+  window.open(mailto, '_blank');
 }
 
 // ── 자동 폴링 (30초마다) ──
