@@ -654,6 +654,40 @@ html, body {
   border-top:1px solid var(--cs);
   line-height:1.6;
 }
+
+/* ── 검색 필터 ── */
+.search-bar-wrap{
+  padding:8px 14px 6px;
+  background:var(--br);
+  border-bottom:1px solid rgba(255,255,255,.08);
+}
+.search-bar{
+  display:flex;align-items:center;
+  background:rgba(255,255,255,.12);
+  border-radius:10px;padding:0 10px;
+  gap:7px;
+}
+.search-bar input{
+  flex:1;border:none;background:none;
+  color:#fff;font-size:13px;font-family:inherit;
+  padding:8px 0;outline:none;
+}
+.search-bar input::placeholder{color:rgba(255,255,255,.45);}
+.search-clear-btn{
+  border:none;background:none;
+  color:rgba(255,255,255,.5);
+  font-size:16px;cursor:pointer;
+  padding:4px;line-height:1;
+  display:none;
+}
+.search-clear-btn.show{display:block;}
+.search-icon{color:rgba(255,255,255,.5);font-size:14px;}
+.search-result-count{
+  font-size:11px;color:rgba(255,255,255,.5);
+  padding:3px 2px 5px;text-align:center;
+  display:none;
+}
+.search-result-count.show{display:block;}
 </style>
 </head>
 <body>
@@ -880,6 +914,18 @@ html, body {
 
 </div>
 
+
+<!-- ── 검색 필터 ── -->
+<div class="search-bar-wrap">
+  <div class="search-bar">
+    <span class="search-icon">🔍</span>
+    <input type="text" id="searchInput" placeholder="보내는 사람 이름으로 검색"
+      oninput="onSearchInput(this.value)"
+      autocomplete="off" autocorrect="off">
+    <button class="search-clear-btn" id="searchClearBtn" onclick="clearSearch()">✕</button>
+  </div>
+  <div class="search-result-count" id="searchResultCount"></div>
+</div>
 
 <!-- ── 날짜 필터 패널 ── -->
 <div class="date-panel-overlay" id="datePanelOverlay" onclick="closeDatePanel()"></div>
@@ -1274,8 +1320,29 @@ function renderOrders() {
   var filtered = allOrders.filter(function(o) {
     if (currentTab === 'new'  && o.status !== 'NEW')  return false;
     if (currentTab === 'done' && o.status !== 'DONE') return false;
-    return orderMatchesDate(o);
+    if (!orderMatchesDate(o)) return false;
+    // 검색 필터: 보내는 사람 이름
+    if (searchQuery) {
+      var sn = (o.senderName||'').toLowerCase();
+      if (sn.indexOf(searchQuery.toLowerCase()) < 0) return false;
+    }
+    return true;
   });
+
+  // 검색 결과 건수 표시
+  var countEl = document.getElementById('searchResultCount');
+  if(countEl) {
+    if(searchQuery) {
+      // 그룹(보내는사람) 기준 카운트
+      var uniqueSenders = {};
+      filtered.forEach(function(o){ uniqueSenders[o.orderNo+'::'+o.orderIndex] = true; });
+      var grpCount = Object.keys(uniqueSenders).length;
+      countEl.textContent = '"' + searchQuery + '" 검색 결과 · ' + grpCount + '건';
+      countEl.classList.add('show');
+    } else {
+      countEl.classList.remove('show');
+    }
+  }
 
   if (filtered.length === 0) {
     list.innerHTML = '<div class="empty"><div class="empty-ico">🍐</div><div class="empty-txt">' +
@@ -2315,6 +2382,30 @@ function requestInvoiceByKey(btn) {
 
   // Gmail 앱으로 열기
   window.open(mailto, '_blank');
+}
+
+
+// ══════════════════════════════
+// 검색 필터
+// ══════════════════════════════
+var searchQuery = '';
+
+function onSearchInput(val) {
+  searchQuery = val.trim();
+  var clearBtn = document.getElementById('searchClearBtn');
+  if(clearBtn) clearBtn.classList.toggle('show', searchQuery.length > 0);
+  renderOrders();
+}
+
+function clearSearch() {
+  searchQuery = '';
+  var input = document.getElementById('searchInput');
+  if(input) input.value = '';
+  var clearBtn = document.getElementById('searchClearBtn');
+  if(clearBtn) clearBtn.classList.remove('show');
+  var countEl = document.getElementById('searchResultCount');
+  if(countEl) countEl.classList.remove('show');
+  renderOrders();
 }
 
 // ── 자동 폴링 (30초마다) ──
