@@ -741,6 +741,76 @@ html, body {
 .btn-invoice.paid{
   background:rgba(106,144,80,.12);border-color:#6A9050;color:#3B5A28;
 }
+
+/* ── 입금완료 탭 체크박스 ── */
+.paid-check-wrap{
+  padding:12px 14px 6px;
+  display:flex;align-items:center;justify-content:space-between;
+  background:#FAF8F4;border-bottom:1px solid var(--bd);
+}
+.paid-check-info{font-size:12px;color:#9A8870;}
+.btn-send-excel{
+  padding:9px 14px;border:none;border-radius:9px;
+  background:#3B2A1A;color:#fff;
+  font-size:12px;font-weight:700;cursor:pointer;
+  font-family:inherit;transition:all .15s;
+  display:none;
+}
+.btn-send-excel.show{display:block;}
+.btn-send-excel:hover{background:#4A3828;}
+.btn-send-excel:disabled{background:#ccc;cursor:not-allowed;}
+
+.order-card .paid-chk-row{
+  display:flex;align-items:center;gap:8px;
+  padding:8px 14px;
+  border-top:1px solid var(--cs);
+  background:#F8F6F0;
+}
+.paid-chk-label{
+  display:flex;align-items:center;gap:8px;
+  font-size:13px;color:#5A4830;font-weight:600;
+  cursor:pointer;user-select:none;
+}
+.paid-chk-input{
+  width:18px;height:18px;cursor:pointer;accent-color:#6A9050;
+  flex-shrink:0;
+}
+
+/* ── 엑셀 발송 확인 팝업 ── */
+.excel-send-overlay{
+  display:none;position:fixed;inset:0;
+  background:rgba(0,0,0,.55);z-index:9900;
+  align-items:center;justify-content:center;padding:24px;
+}
+.excel-send-overlay.show{display:flex;}
+.excel-send-modal{
+  background:#fff;border-radius:18px;
+  width:100%;max-width:min(340px,calc(100vw-32px));
+  box-shadow:0 8px 32px rgba(0,0,0,.22);overflow:hidden;
+}
+.excel-send-hd{
+  background:linear-gradient(90deg,#3B2A1A,#5A4030);
+  padding:13px 18px;font-size:14px;font-weight:800;color:#fff;
+}
+.excel-send-body{padding:16px 18px;}
+.excel-send-count{
+  font-size:14px;font-weight:700;color:#3B2A1A;
+  margin-bottom:8px;
+}
+.excel-send-list{
+  background:#FAF8F4;border:1px solid #D8CEC0;
+  border-radius:9px;padding:10px 12px;
+  font-size:12px;color:#5A4830;line-height:1.8;
+  max-height:140px;overflow-y:auto;margin-bottom:14px;
+}
+.excel-send-btns{display:flex;gap:8px;}
+.excel-send-btn{
+  flex:1;padding:12px;border:none;border-radius:10px;
+  font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;
+}
+.excel-send-btn.ok{background:#3B2A1A;color:#fff;}
+.excel-send-btn.ok:hover{background:#4A3828;}
+.excel-send-btn.cancel{background:#F0EBE3;color:#5A4830;border:1.5px solid #D8CEC0;}
 </style>
 </head>
 <body>
@@ -1053,6 +1123,11 @@ html, body {
   <button class="btn-inv-save" onclick="saveProducts()">💾 변경사항 저장</button>
 </div>
 
+<!-- 입금완료 탭 체크/발송 영역 -->
+<div class="paid-check-wrap" id="paidCheckWrap" style="display:none;">
+  <span class="paid-check-info" id="paidCheckInfo">주문을 선택하세요</span>
+  <button class="btn-send-excel" id="btnSendExcel" onclick="openExcelModal()">📊 엑셀 메일 발송</button>
+</div>
 <div class="order-list" id="orderList">
   <div class="loading">불러오는 중...</div>
 </div>
@@ -1354,6 +1429,9 @@ function switchTab(tab) {
     var el = document.getElementById('tab-'+t);
     if(el) el.classList.toggle('act', t===tab);
   });
+  // 입금완료 탭일 때만 체크/발송 바 표시
+  var checkWrap = document.getElementById('paidCheckWrap');
+  if(checkWrap) checkWrap.style.display = (tab === 'paid') ? 'flex' : 'none';
   var orderList = document.getElementById('orderList');
   var invWrap   = document.getElementById('invWrap');
   if(tab === 'inv') {
@@ -1520,14 +1598,29 @@ function renderOrders() {
       }).filter(Boolean).join(' / ');
 
       html += '<div class="card-product-summary">📦 ' + _prodSummary + '</div>';
+      // 입금완료 탭: 체크박스 먼저 표시
+      if(currentTab === 'paid') {
+        html += '<div class="paid-chk-row">'
+          + '<label class="paid-chk-label">'
+            + '<input type="checkbox" class="paid-chk-input"'
+            + ' data-rows="' + rowList.join(',') + '"'
+            + ' data-sender="' + (first.senderName||'').replace(/"/g,'&quot;') + '"'
+            + ' onchange="onPaidCheck()">'
+            + ' 메일 발송 선택'
+          + '</label>'
+        + '</div>';
+      }
+
       html += '<div class="card-foot">';
-      if(isNew) {
+      if(orders[0].status === 'PAID') {
+        html += '<div class="btn-confirmed" style="flex:1;">💰 입금완료됨</div>';
+      } else if(isNew) {
         html += '<button class="btn-confirm" style="flex:0.8;font-size:12px;" onclick="confirmOrderGroup([' + rowList.join(',') + '], this)">✓ 확인 완료</button>';
+        html += '<button class="btn-invoice" data-ikey="' + (first.orderNo + '::' + (first.orderIndex||'')) + '" onclick="markPaidByKey(this)">💰 입금완료</button>';
       } else {
         html += '<div class="btn-confirmed" style="flex:0.8;">✓ 확인됨' + (first.confirmedAt ? '<div class="confirmed-time">' + fmtDate(first.confirmedAt) + '</div>' : '') + '</div>';
+        html += '<button class="btn-invoice" data-ikey="' + (first.orderNo + '::' + (first.orderIndex||'')) + '" onclick="markPaidByKey(this)">💰 입금완료</button>';
       }
-      var _invoiceKey = first.orderNo + '::' + (first.orderIndex||'');
-      html += '<button class="btn-invoice" data-ikey="' + _invoiceKey + '" onclick="markPaidByKey(this)">💰 입금완료</button>';
       var _dname = (first.senderName||'주문자').replace(/['"]/g,'');
       html += '<button class="btn-delete" onclick="deleteOrderGroup([' + rowList.join(',') + '],this)" data-name="' + _dname + '">🗑 삭제</button>';
       html += '</div></div>';
@@ -2462,95 +2555,22 @@ function clearSearch() {
 }
 
 
-// ══════════════════════════════
-// 입금완료 & 예약 이메일 발송
-// ══════════════════════════════
-var _paidCurrentKey = null;
 
+// ══════════════════════════════
+// 입금완료 탭 - 체크 & 엑셀 발송
+// ══════════════════════════════
+
+// 입금완료 버튼: 팝업 없이 바로 PAID 처리
 function markPaidByKey(btn) {
   var key = btn.getAttribute('data-ikey');
-  _paidCurrentKey = key;
-
-  // allOrders에서 해당 그룹 찾기
   var orders = allOrders.filter(function(o){
     return ((o.orderNo||'') + '::' + (o.orderIndex||'')) === key;
   });
-  if(!orders || orders.length === 0) { showToast('주문 데이터를 찾을 수 없어요.'); return; }
+  if(!orders.length) { showToast('주문 데이터를 찾을 수 없어요.'); return; }
+  if(orders[0].status === 'PAID') { showToast('이미 입금완료 처리됐어요.'); return; }
 
-  // 이미 PAID인지 확인
-  if(orders[0].status === 'PAID') { showToast('이미 입금완료 처리된 주문이에요.'); return; }
-
-  var first = orders[0];
-
-  // 이메일 본문 생성 (금액 제외)
-  var now = new Date();
-  var kst = new Date(now.getTime() + 9*60*60*1000);
-  var mo = kst.getUTCMonth()+1, day = kst.getUTCDate();
-
-  var body = '안녕하세요. 광진농원 배송 주문 내역 전달드립니다.\n\n';
-  body += '[보내는 사람]\n';
-  body += '성명: ' + (first.senderName||'-') + '\n';
-  body += '연락처: ' + (first.senderPhone||'-') + '\n';
-  body += '주소: ' + (first.senderAddr||'-') + '\n\n';
-
-  orders.forEach(function(o, i) {
-    var prodParts = (o.product||'').match(/^(.+?)\s*(\d+)박스$/);
-    var prodName = prodParts ? prodParts[1].trim() : (o.product||'-');
-    var qty = prodParts ? prodParts[2] : '1';
-    body += '[받는 사람 ' + (i+1) + ']\n';
-    body += '성명: ' + (o.rcptName||'-') + '\n';
-    body += '연락처: ' + (o.rcptPhone||'-') + '\n';
-    body += '주소: ' + (o.rcptAddr||'-') + '\n';
-    body += '상품: ' + prodName + ', 수량: ' + qty + '\n';
-    if(o.delivDate && o.delivDate !== '미지정') {
-      body += '배송 희망일: ' + o.delivDate + '\n';
-    }
-    body += '\n';
-  });
-  if(first.memo && first.memo !== '없음') {
-    body += '[요청사항]\n' + first.memo + '\n\n';
-  }
-  body += '감사합니다.\n광진농원 드림';
-
-  // 기본 시간: 지금 + 1시간
-  var kstH = kst.getUTCHours(), kstM = kst.getUTCMinutes();
-  kstH = (kstH + 1) % 24;
-  var p2 = function(n){ return String(n).padStart(2,'0'); };
-  document.getElementById('paidSendTime').value = p2(kstH) + ':' + p2(kstM);
-
-  // 미리보기
-  var subject = '광진농원 ' + mo + '월 ' + day + '일 주문 전달드립니다.';
-  document.getElementById('paidEmailPreview').textContent =
-    '제목: ' + subject + '\n\n' + body.slice(0, 200) + (body.length > 200 ? '...' : '');
-
-  // 데이터 저장
-  document.getElementById('paidEmailOverlay').dataset.body = body;
-  document.getElementById('paidEmailOverlay').dataset.subject = subject;
-  document.getElementById('paidEmailOverlay').dataset.orders = JSON.stringify(orders.map(function(o){ return o.row; }));
-
-  // 팝업 오픈
-  document.getElementById('paidEmailOverlay').classList.add('show');
-}
-
-function closePaidModal() {
-  document.getElementById('paidEmailOverlay').classList.remove('show');
-  _paidCurrentKey = null;
-}
-
-function confirmPaidSend() {
-  var overlay = document.getElementById('paidEmailOverlay');
-  var rows = JSON.parse(overlay.dataset.orders || '[]');
-  var subject = overlay.dataset.subject || '';
-  var body = overlay.dataset.body || '';
-  var timeVal = document.getElementById('paidSendTime').value;
-
-  if(!timeVal) { showToast('발송 시간을 설정해 주세요.'); return; }
-  if(!rows.length) { showToast('주문 데이터 오류'); return; }
-
-  var sendBtn = overlay.querySelector('.paid-email-btn.send');
-  if(sendBtn){ sendBtn.disabled = true; sendBtn.textContent = '처리 중...'; }
-
-  // 1. 상태 PAID로 변경
+  btn.disabled = true; btn.textContent = '처리 중...';
+  var rows = orders.map(function(o){ return o.row; });
   var done = 0;
   rows.forEach(function(row) {
     var url = SCRIPT_URL + '?action=markpaid&row=' + row + '&t=' + Date.now();
@@ -2559,56 +2579,97 @@ function confirmPaidSend() {
       : jsonp(url);
     p.then(function(){
       done++;
-      if(done < rows.length) return;
-
-      // 2. 예약 시간 계산
-      var parts = timeVal.split(':');
-      var hh = parseInt(parts[0]), mm = parseInt(parts[1]);
-      var now = new Date();
-      var kstNow = new Date(now.getTime() + 9*60*60*1000);
-      var sendAt = new Date(Date.UTC(
-        kstNow.getUTCFullYear(), kstNow.getUTCMonth(), kstNow.getUTCDate(),
-        hh - 9, mm  // KST → UTC
-      ));
-      var msLeft = sendAt.getTime() - Date.now();
-
-      // 3. Gmail 발송 예약
-      if(msLeft <= 0) {
-        // 이미 지난 시간 → 즉시 발송
-        sendEmailNow(subject, body);
-      } else {
-        // 예약 발송
-        setTimeout(function(){ sendEmailNow(subject, body); }, msLeft);
-        var p2 = function(n){ return String(n).padStart(2,'0'); };
-        showToast('✓ 입금완료 처리! ' + p2(hh) + ':' + p2(mm) + '에 이메일 발송 예약됨');
+      if(done === rows.length) {
+        showToast('✓ 입금완료 처리됐어요! 입금완료 탭에서 확인하세요.');
+        fetchOrders(false);
       }
-
-      closePaidModal();
-      fetchOrders(false);
     }).catch(function(){
-      if(sendBtn){ sendBtn.disabled = false; sendBtn.textContent = '✓ 입금완료 & 발송 예약'; }
-      showToast('처리 실패 - 다시 시도해 주세요.');
+      done++;
+      if(done === rows.length) { btn.disabled=false; btn.textContent='💰 입금완료'; }
     });
   });
 }
 
-function sendEmailNow(subject, body) {
-  var to = 'santar7021@naver.com';
+// 체크박스 변경 시 발송 버튼 업데이트
+function onPaidCheck() {
+  var checked = document.querySelectorAll('.paid-chk-input:checked');
+  var info = document.getElementById('paidCheckInfo');
+  var btn = document.getElementById('btnSendExcel');
+  if(info) info.textContent = checked.length > 0
+    ? checked.length + '건 선택됨'
+    : '주문을 선택하세요';
+  if(btn) btn.classList.toggle('show', checked.length > 0);
+}
+
+// 엑셀 발송 팝업 열기
+function openExcelModal() {
+  var checked = document.querySelectorAll('.paid-chk-input:checked');
+  if(!checked.length) { showToast('발송할 주문을 선택해 주세요.'); return; }
+
+  var rows = [];
+  var senders = [];
+  checked.forEach(function(chk) {
+    (chk.getAttribute('data-rows')||'').split(',').forEach(function(r){ rows.push(r.trim()); });
+    senders.push(chk.getAttribute('data-sender')||'');
+  });
+
+  // 팝업 채우기
+  var now = new Date();
+  var kst = new Date(now.getTime() + 9*60*60*1000);
+  var mo = kst.getUTCMonth()+1, day = kst.getUTCDate();
+  var subject = '광진농원 ' + mo + '월 ' + day + '일 주문 전달드립니다.';
+
+  document.getElementById('excelSendCount').textContent =
+    '총 ' + checked.length + '건 · ' + rows.length + '개 주문 행';
+  document.getElementById('excelSendList').innerHTML =
+    senders.map(function(s,i){ return (i+1) + '. ' + (s||'주문자'); }).join('<br>');
+
+  // 데이터 저장
+  var overlay = document.getElementById('excelSendOverlay');
+  overlay.dataset.rows = rows.join(',');
+  overlay.dataset.subject = subject;
+  overlay.classList.add('show');
+}
+
+function closeExcelModal() {
+  document.getElementById('excelSendOverlay').classList.remove('show');
+}
+
+// 실제 엑셀 발송
+function doSendExcel() {
+  var overlay = document.getElementById('excelSendOverlay');
+  var rows = overlay.dataset.rows || '';
+  var subject = overlay.dataset.subject || '';
+  var btn = document.getElementById('excelSendOkBtn');
+  if(!rows) { showToast('발송할 주문이 없어요.'); return; }
+
+  btn.disabled = true; btn.textContent = '발송 중...';
+
   var url = SCRIPT_URL
-    + '?action=sendemail'
-    + '&to=' + encodeURIComponent(to)
+    + '?action=sendexcel'
+    + '&rows=' + encodeURIComponent(rows)
     + '&subject=' + encodeURIComponent(subject)
-    + '&body=' + encodeURIComponent(body)
     + '&t=' + Date.now();
 
   var p = window.location.href.indexOf('script.google.com') >= 0
     ? fetch(url).then(function(r){return r.json();})
     : jsonp(url);
 
-  p.then(function(data){
-    if(data.result === 'ok') showToast('✓ 이메일이 발송되었습니다!');
-    else showToast('이메일 발송 실패: ' + (data.message||''));
-  }).catch(function(){ showToast('이메일 발송 실패 - 네트워크 오류'); });
+  p.then(function(data) {
+    btn.disabled = false; btn.textContent = '📤 발송하기';
+    closeExcelModal();
+    if(data.result === 'ok') {
+      showToast('✓ 엑셀 파일이 santar7021@naver.com 으로 발송됐어요!');
+      // 체크 해제
+      document.querySelectorAll('.paid-chk-input').forEach(function(c){ c.checked = false; });
+      onPaidCheck();
+    } else {
+      showToast('발송 실패: ' + (data.message||'오류'));
+    }
+  }).catch(function() {
+    btn.disabled = false; btn.textContent = '📤 발송하기';
+    showToast('발송 실패 - 네트워크 오류');
+  });
 }
 
 // ── 자동 폴링 (30초마다) ──
@@ -2657,21 +2718,20 @@ startPolling();
   </div>
 </div>
 
-<!-- ── 입금완료 & 예약발송 팝업 ── -->
-<div class="paid-email-overlay" id="paidEmailOverlay">
-  <div class="paid-email-modal">
-    <div class="paid-email-hd">💰 입금완료 & 이메일 발송</div>
-    <div class="paid-email-body">
-      <div class="paid-email-label">발송 예약 시간 (오늘)</div>
-      <div class="paid-time-row">
-        <input type="time" class="paid-time-input" id="paidSendTime">
-        <span style="font-size:12px;color:#9A8870;">에 발송</span>
+
+<!-- ── 엑셀 발송 확인 팝업 ── -->
+<div class="excel-send-overlay" id="excelSendOverlay">
+  <div class="excel-send-modal">
+    <div class="excel-send-hd">📊 엑셀 파일 메일 발송</div>
+    <div class="excel-send-body">
+      <div class="excel-send-count" id="excelSendCount"></div>
+      <div class="excel-send-list" id="excelSendList"></div>
+      <div style="font-size:11px;color:#9A8870;margin-bottom:14px;">
+        📧 santar7021@naver.com 으로 엑셀 첨부 발송
       </div>
-      <div class="paid-email-label" style="margin-top:14px;">이메일 미리보기</div>
-      <div class="paid-email-preview" id="paidEmailPreview"></div>
-      <div class="paid-email-btns">
-        <button class="paid-email-btn send" onclick="confirmPaidSend()">✓ 입금완료 & 발송 예약</button>
-        <button class="paid-email-btn cancel" onclick="closePaidModal()">취소</button>
+      <div class="excel-send-btns">
+        <button class="excel-send-btn ok" id="excelSendOkBtn" onclick="doSendExcel()">📤 발송하기</button>
+        <button class="excel-send-btn cancel" onclick="closeExcelModal()">취소</button>
       </div>
     </div>
   </div>
