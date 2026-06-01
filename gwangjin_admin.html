@@ -688,6 +688,59 @@ html, body {
   display:none;
 }
 .search-result-count.show{display:block;}
+
+/* ── 입금완료 예약발송 팝업 ── */
+.paid-email-overlay{
+  display:none;position:fixed;inset:0;
+  background:rgba(0,0,0,.55);z-index:9900;
+  align-items:center;justify-content:center;padding:24px;
+}
+.paid-email-overlay.show{display:flex;}
+.paid-email-modal{
+  background:#fff;border-radius:18px;
+  width:100%;max-width:min(360px,calc(100vw-32px));
+  box-shadow:0 8px 32px rgba(0,0,0,.22);overflow:hidden;
+}
+.paid-email-hd{
+  background:linear-gradient(90deg,#3B2A1A,#5A4030);
+  padding:14px 18px;
+  font-size:14px;font-weight:800;color:#fff;
+}
+.paid-email-body{padding:16px 18px;}
+.paid-email-label{
+  font-size:12px;font-weight:700;color:#5A4830;
+  margin-bottom:5px;margin-top:12px;
+}
+.paid-email-label:first-child{margin-top:0;}
+.paid-email-preview{
+  background:#FAF8F4;border:1px solid #D8CEC0;
+  border-radius:9px;padding:10px 12px;
+  font-size:12px;color:#5A4830;line-height:1.6;
+  max-height:120px;overflow-y:auto;
+  white-space:pre-wrap;
+}
+.paid-time-row{
+  display:flex;align-items:center;gap:10px;margin-top:4px;
+}
+.paid-time-input{
+  border:1px solid #D8CEC0;border-radius:9px;
+  padding:9px 12px;font-size:15px;font-weight:600;
+  color:#3B2A1A;background:#FAF8F4;
+  font-family:inherit;outline:none;
+  flex:1;text-align:center;
+}
+.paid-time-input:focus{border-color:#6A9050;}
+.paid-email-btns{display:flex;gap:8px;margin-top:16px;}
+.paid-email-btn{
+  flex:1;padding:12px;border:none;border-radius:10px;
+  font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;
+}
+.paid-email-btn.send{background:#3B2A1A;color:#fff;}
+.paid-email-btn.send:hover{background:#4A3828;}
+.paid-email-btn.cancel{background:#F0EBE3;color:#5A4830;border:1.5px solid #D8CEC0;}
+.btn-invoice.paid{
+  background:rgba(106,144,80,.12);border-color:#6A9050;color:#3B5A28;
+}
 </style>
 </head>
 <body>
@@ -953,7 +1006,7 @@ html, body {
 <div class="tabs">
   <button class="tab act" id="tab-all" onclick="switchTab('all')">전체</button>
   <button class="tab" id="tab-new" onclick="switchTab('new')">신규 <span id="newTabCount"></span></button>
-  <button class="tab" id="tab-done" onclick="switchTab('done')">확인완료</button>
+  <button class="tab" id="tab-paid" onclick="switchTab('paid')">입금완료</button>
   <button class="tab" id="tab-inv" onclick="switchTab('inv')">상품관리</button>
 </div>
 
@@ -1297,7 +1350,7 @@ function updateBadge(count) {
 // ── 탭 전환 ──
 function switchTab(tab) {
   currentTab = tab;
-  ['all','new','done','inv'].forEach(function(t) {
+  ['all','new','paid','inv'].forEach(function(t) {
     var el = document.getElementById('tab-'+t);
     if(el) el.classList.toggle('act', t===tab);
   });
@@ -1319,7 +1372,7 @@ function renderOrders() {
   var list = document.getElementById('orderList');
   var filtered = allOrders.filter(function(o) {
     if (currentTab === 'new'  && o.status !== 'NEW')  return false;
-    if (currentTab === 'done' && o.status !== 'DONE') return false;
+    if (currentTab === 'paid' && o.status !== 'PAID') return false;
     if (!orderMatchesDate(o)) return false;
     // 검색 필터: 보내는 사람 이름
     if (searchQuery) {
@@ -1474,7 +1527,7 @@ function renderOrders() {
         html += '<div class="btn-confirmed" style="flex:0.8;">✓ 확인됨' + (first.confirmedAt ? '<div class="confirmed-time">' + fmtDate(first.confirmedAt) + '</div>' : '') + '</div>';
       }
       var _invoiceKey = first.orderNo + '::' + (first.orderIndex||'');
-      html += '<button class="btn-invoice" data-ikey="' + _invoiceKey + '" onclick="requestInvoiceByKey(this)">📧 송장 요청</button>';
+      html += '<button class="btn-invoice" data-ikey="' + _invoiceKey + '" onclick="markPaidByKey(this)">💰 입금완료</button>';
       var _dname = (first.senderName||'주문자').replace(/['"]/g,'');
       html += '<button class="btn-delete" onclick="deleteOrderGroup([' + rowList.join(',') + '],this)" data-name="' + _dname + '">🗑 삭제</button>';
       html += '</div></div>';
@@ -2408,6 +2461,156 @@ function clearSearch() {
   renderOrders();
 }
 
+
+// ══════════════════════════════
+// 입금완료 & 예약 이메일 발송
+// ══════════════════════════════
+var _paidCurrentKey = null;
+
+function markPaidByKey(btn) {
+  var key = btn.getAttribute('data-ikey');
+  _paidCurrentKey = key;
+
+  // allOrders에서 해당 그룹 찾기
+  var orders = allOrders.filter(function(o){
+    return ((o.orderNo||'') + '::' + (o.orderIndex||'')) === key;
+  });
+  if(!orders || orders.length === 0) { showToast('주문 데이터를 찾을 수 없어요.'); return; }
+
+  // 이미 PAID인지 확인
+  if(orders[0].status === 'PAID') { showToast('이미 입금완료 처리된 주문이에요.'); return; }
+
+  var first = orders[0];
+
+  // 이메일 본문 생성 (금액 제외)
+  var now = new Date();
+  var kst = new Date(now.getTime() + 9*60*60*1000);
+  var mo = kst.getUTCMonth()+1, day = kst.getUTCDate();
+
+  var body = '안녕하세요. 광진농원 배송 주문 내역 전달드립니다.\n\n';
+  body += '[보내는 사람]\n';
+  body += '성명: ' + (first.senderName||'-') + '\n';
+  body += '연락처: ' + (first.senderPhone||'-') + '\n';
+  body += '주소: ' + (first.senderAddr||'-') + '\n\n';
+
+  orders.forEach(function(o, i) {
+    var prodParts = (o.product||'').match(/^(.+?)\s*(\d+)박스$/);
+    var prodName = prodParts ? prodParts[1].trim() : (o.product||'-');
+    var qty = prodParts ? prodParts[2] : '1';
+    body += '[받는 사람 ' + (i+1) + ']\n';
+    body += '성명: ' + (o.rcptName||'-') + '\n';
+    body += '연락처: ' + (o.rcptPhone||'-') + '\n';
+    body += '주소: ' + (o.rcptAddr||'-') + '\n';
+    body += '상품: ' + prodName + ', 수량: ' + qty + '\n';
+    if(o.delivDate && o.delivDate !== '미지정') {
+      body += '배송 희망일: ' + o.delivDate + '\n';
+    }
+    body += '\n';
+  });
+  if(first.memo && first.memo !== '없음') {
+    body += '[요청사항]\n' + first.memo + '\n\n';
+  }
+  body += '감사합니다.\n광진농원 드림';
+
+  // 기본 시간: 지금 + 1시간
+  var kstH = kst.getUTCHours(), kstM = kst.getUTCMinutes();
+  kstH = (kstH + 1) % 24;
+  var p2 = function(n){ return String(n).padStart(2,'0'); };
+  document.getElementById('paidSendTime').value = p2(kstH) + ':' + p2(kstM);
+
+  // 미리보기
+  var subject = '광진농원 ' + mo + '월 ' + day + '일 주문 전달드립니다.';
+  document.getElementById('paidEmailPreview').textContent =
+    '제목: ' + subject + '\n\n' + body.slice(0, 200) + (body.length > 200 ? '...' : '');
+
+  // 데이터 저장
+  document.getElementById('paidEmailOverlay').dataset.body = body;
+  document.getElementById('paidEmailOverlay').dataset.subject = subject;
+  document.getElementById('paidEmailOverlay').dataset.orders = JSON.stringify(orders.map(function(o){ return o.row; }));
+
+  // 팝업 오픈
+  document.getElementById('paidEmailOverlay').classList.add('show');
+}
+
+function closePaidModal() {
+  document.getElementById('paidEmailOverlay').classList.remove('show');
+  _paidCurrentKey = null;
+}
+
+function confirmPaidSend() {
+  var overlay = document.getElementById('paidEmailOverlay');
+  var rows = JSON.parse(overlay.dataset.orders || '[]');
+  var subject = overlay.dataset.subject || '';
+  var body = overlay.dataset.body || '';
+  var timeVal = document.getElementById('paidSendTime').value;
+
+  if(!timeVal) { showToast('발송 시간을 설정해 주세요.'); return; }
+  if(!rows.length) { showToast('주문 데이터 오류'); return; }
+
+  var sendBtn = overlay.querySelector('.paid-email-btn.send');
+  if(sendBtn){ sendBtn.disabled = true; sendBtn.textContent = '처리 중...'; }
+
+  // 1. 상태 PAID로 변경
+  var done = 0;
+  rows.forEach(function(row) {
+    var url = SCRIPT_URL + '?action=markpaid&row=' + row + '&t=' + Date.now();
+    var p = window.location.href.indexOf('script.google.com') >= 0
+      ? fetch(url).then(function(r){return r.json();})
+      : jsonp(url);
+    p.then(function(){
+      done++;
+      if(done < rows.length) return;
+
+      // 2. 예약 시간 계산
+      var parts = timeVal.split(':');
+      var hh = parseInt(parts[0]), mm = parseInt(parts[1]);
+      var now = new Date();
+      var kstNow = new Date(now.getTime() + 9*60*60*1000);
+      var sendAt = new Date(Date.UTC(
+        kstNow.getUTCFullYear(), kstNow.getUTCMonth(), kstNow.getUTCDate(),
+        hh - 9, mm  // KST → UTC
+      ));
+      var msLeft = sendAt.getTime() - Date.now();
+
+      // 3. Gmail 발송 예약
+      if(msLeft <= 0) {
+        // 이미 지난 시간 → 즉시 발송
+        sendEmailNow(subject, body);
+      } else {
+        // 예약 발송
+        setTimeout(function(){ sendEmailNow(subject, body); }, msLeft);
+        var p2 = function(n){ return String(n).padStart(2,'0'); };
+        showToast('✓ 입금완료 처리! ' + p2(hh) + ':' + p2(mm) + '에 이메일 발송 예약됨');
+      }
+
+      closePaidModal();
+      fetchOrders(false);
+    }).catch(function(){
+      if(sendBtn){ sendBtn.disabled = false; sendBtn.textContent = '✓ 입금완료 & 발송 예약'; }
+      showToast('처리 실패 - 다시 시도해 주세요.');
+    });
+  });
+}
+
+function sendEmailNow(subject, body) {
+  var to = 'santar7021@naver.com';
+  var url = SCRIPT_URL
+    + '?action=sendemail'
+    + '&to=' + encodeURIComponent(to)
+    + '&subject=' + encodeURIComponent(subject)
+    + '&body=' + encodeURIComponent(body)
+    + '&t=' + Date.now();
+
+  var p = window.location.href.indexOf('script.google.com') >= 0
+    ? fetch(url).then(function(r){return r.json();})
+    : jsonp(url);
+
+  p.then(function(data){
+    if(data.result === 'ok') showToast('✓ 이메일이 발송되었습니다!');
+    else showToast('이메일 발송 실패: ' + (data.message||''));
+  }).catch(function(){ showToast('이메일 발송 실패 - 네트워크 오류'); });
+}
+
 // ── 자동 폴링 (30초마다) ──
 function startPolling() {
   fetchOrders(false);
@@ -2450,6 +2653,26 @@ startPolling();
       </div>
       <div class="pm-notice" id="pmNotice">✓ 저장되었습니다. 주문서에 반영됩니다.</div>
       <button class="pm-save-btn" id="pmSaveBtn" onclick="pmSaveProducts()">💾 저장하기</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── 입금완료 & 예약발송 팝업 ── -->
+<div class="paid-email-overlay" id="paidEmailOverlay">
+  <div class="paid-email-modal">
+    <div class="paid-email-hd">💰 입금완료 & 이메일 발송</div>
+    <div class="paid-email-body">
+      <div class="paid-email-label">발송 예약 시간 (오늘)</div>
+      <div class="paid-time-row">
+        <input type="time" class="paid-time-input" id="paidSendTime">
+        <span style="font-size:12px;color:#9A8870;">에 발송</span>
+      </div>
+      <div class="paid-email-label" style="margin-top:14px;">이메일 미리보기</div>
+      <div class="paid-email-preview" id="paidEmailPreview"></div>
+      <div class="paid-email-btns">
+        <button class="paid-email-btn send" onclick="confirmPaidSend()">✓ 입금완료 & 발송 예약</button>
+        <button class="paid-email-btn cancel" onclick="closePaidModal()">취소</button>
+      </div>
     </div>
   </div>
 </div>
