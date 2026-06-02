@@ -1643,6 +1643,11 @@ function renderOrders() {
       if(first.memo && first.memo!=='없음') {
         html += '<div class="card-row"><span class="card-k">요청</span><span class="card-v">' + first.memo + '</span></div>';
       }
+      if(first.notiPhone) {
+        html += '<div class="card-row"><span class="card-k">접수알림</span><span class="card-v">' + first.notiPhone + '</span></div>';
+      } else {
+        html += '<div class="card-row"><span class="card-k">접수알림</span><span class="card-v" style="color:#9A8870;">첫번째 보내는분</span></div>';
+      }
 
       // 총 금액 요약
       if(totalAmt > 0) {

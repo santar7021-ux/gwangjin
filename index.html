@@ -1391,6 +1391,14 @@ html, body {
       <input type="date" id="ddate">
     </div>
   </div></div>
+  <div class="slbl" style="margin-top:4px"><div class="sbar"></div><span class="st">접수 알림</span><span class="ss">접수 알림 연락처 작성 (미기재 시 첫번째 보내는분께 알림)</span></div>
+  <div class="card"><div class="ci">
+    <div class="f">
+      <div class="fl">연락처</div>
+      <input type="tel" id="notiPhone" placeholder="010-0000-0000" maxlength="13" inputmode="numeric"
+      oninput="this.dataset.userEdited='1'">
+    </div>
+  </div></div>
   <div class="slbl" style="margin-top:4px"><div class="sbar"></div><span class="st">추가 요청사항</span><span class="ss">택배 주문 시 노랑 천 포장 불가</span></div>
   <div class="card"><div class="ci">
     <textarea id="memo" placeholder="예) 선물 포장 부탁드립니다 / 부재 시 경비실에 맡겨 주세요"></textarea>
@@ -2247,6 +2255,20 @@ function vStep(n){
 // ── 스텝 네비 ──
 var cur=1;
 function gs(n){
+  // p2(배송메모)로 이동할 때 접수알림 연락처 자동 채우기
+  if(n === 2) {
+    var notiEl = document.getElementById('notiPhone');
+    if(notiEl && !notiEl.dataset.userEdited) {
+      // 첫번째 주문의 첫번째 보내는분 연락처
+      var firstOid = orderIds[0];
+      if(firstOid) {
+        var spEl = document.getElementById('sp-'+firstOid);
+        if(spEl && spEl.value) {
+          notiEl.value = spEl.value;
+        }
+      }
+    }
+  }
   document.querySelectorAll('.page').forEach(function(p,i){p.classList.toggle('act',i+1===n);});
   document.querySelectorAll('.sb').forEach(function(b,i){
     b.classList.toggle('act',i+1===n);
@@ -2347,9 +2369,12 @@ function bldSum(){
     +'</div>';
   }
 
-  h+='<div class="sumblk"><div class="sumhd">배송 · 요청사항</div>'
+  var np2 = (document.getElementById('notiPhone').value||'').trim();
+  h+='<div class="sumblk"><div class="sumhd">배송 · 요청사항 · 접수알림</div>'
     +'<div class="sumr"><span class="sumk">배송 희망일</span><span class="sumv">'+(dd?fmtDate(dd,true):'주문일로부터 3~4일 소요')+'</span></div>'
-    +'<div class="sumr"><span class="sumk">요청사항</span><span class="sumv">'+(mm||'없음')+'</span></div></div>';
+    +'<div class="sumr"><span class="sumk">요청사항</span><span class="sumv">'+(mm||'없음')+'</span></div>'
+    +'<div class="sumr"><span class="sumk">접수 알림</span><span class="sumv">'+(np2||'첫번째 보내는분께 알림')+'</span></div>'
+    +'</div>';
   document.getElementById('suma').innerHTML=h;
 }
 
@@ -2363,8 +2388,9 @@ function sub(){
   var orderNo = 'ORD-'+now.getTime();
   var dd = document.getElementById('ddate').value||'미지정';
   var mm = (document.getElementById('memo').value||'').trim()||'없음';
+  var np = (document.getElementById('notiPhone').value||'').trim();
 
-  var payload = {orders:[], deliveryDate:dd, memo:mm, submittedAt:submittedAt, orderNo:orderNo};
+  var payload = {orders:[], deliveryDate:dd, memo:mm, notiPhone:np, submittedAt:submittedAt, orderNo:orderNo};
 
   orderIds.forEach(function(oid, idx){
     var sn = ((document.getElementById('sn-'+oid)||{}).value||'').trim()||'주문자';
@@ -2432,6 +2458,7 @@ function goIntro(){
 function rst(){
   document.getElementById('ddate').value='';
   document.getElementById('memo').value='';
+  var nEl=document.getElementById('notiPhone'); if(nEl){nEl.value=''; delete nEl.dataset.userEdited;}
   document.querySelectorAll('.chip').forEach(function(c){c.classList.remove('on');});
   orderIds=[]; orderCount=0; rcptData={}; rcptCount=0;
   renderOrders(); gs(1);
@@ -2576,6 +2603,11 @@ function confirmCallNo() {
 // ── 초기 ──
 addOrder();
 loadProductsForOrder();
+// 접수알림 연락처 자동 하이픈
+(function(){
+  var el = document.getElementById('notiPhone');
+  if(el) aHy(el);
+})();
 
 </script>
 
