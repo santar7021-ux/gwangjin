@@ -874,6 +874,15 @@ html, body {
   background:#F0EBE3;color:#5A4830;
   border:1.5px solid #D8CEC0;
 }
+
+/* ── 관리자 수량 드롭다운 ── */
+.qty-select{
+  border:1px solid #D8CEC0;border-radius:9px;
+  padding:7px 10px;font-size:13px;font-weight:700;
+  color:#3B2A1A;background:#FAF8F4;
+  font-family:inherit;outline:none;cursor:pointer;
+  min-width:80px;
+}
 </style>
 </head>
 <body>
@@ -1137,7 +1146,7 @@ html, body {
 
 <!-- 탭 -->
 <div class="tabs">
-  <button class="tab act" id="tab-all" onclick="switchTab('all')">전체</button>
+  <button class="tab act" id="tab-all" onclick="switchTab('all')">주문</button>
   <button class="tab" id="tab-new" onclick="switchTab('new')">신규 <span id="newTabCount"></span></button>
   <button class="tab" id="tab-paid" onclick="switchTab('paid')">입금완료</button>
   <button class="tab" id="tab-inv" onclick="switchTab('inv')">상품관리</button>
@@ -1512,8 +1521,10 @@ function switchTab(tab) {
 function renderOrders() {
   var list = document.getElementById('orderList');
   var filtered = allOrders.filter(function(o) {
-    if (currentTab === 'new'  && o.status !== 'NEW')  return false;
-    if (currentTab === 'paid' && o.status !== 'PAID') return false;
+    // 전체(주문) 탭: PAID 제외 (입금완료 탭에서만 표시)
+    if (currentTab === 'all'  && o.status === 'PAID')  return false;
+    if (currentTab === 'new'  && o.status !== 'NEW')   return false;
+    if (currentTab === 'paid' && o.status !== 'PAID')  return false;
     if (!orderMatchesDate(o)) return false;
     // 검색 필터: 보내는 사람 이름
     if (searchQuery) {
