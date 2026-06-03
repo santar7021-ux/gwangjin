@@ -883,6 +883,67 @@ html, body {
   font-family:inherit;outline:none;cursor:pointer;
   min-width:80px;
 }
+
+/* ── 매출 현황 탭 ── */
+.sales-wrap{ padding:0; }
+.sales-kpi-row{
+  display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;
+}
+.sales-kpi{
+  flex:1;min-width:90px;
+  background:#fff;border:1px solid #D8CEC0;border-radius:12px;
+  padding:12px 10px;text-align:center;
+}
+.sales-kpi-label{font-size:10px;color:#9A8870;font-weight:600;margin-bottom:4px;}
+.sales-kpi-val{font-size:18px;font-weight:800;color:#3B2A1A;}
+.sales-kpi-unit{font-size:10px;color:#9A8870;margin-top:2px;}
+.sales-kpi.highlight .sales-kpi-val{color:#6A9050;}
+
+.sales-section-hd{
+  font-size:12px;font-weight:800;color:#6A9050;
+  letter-spacing:.4px;margin:14px 0 6px;
+  display:flex;align-items:center;gap:6px;
+}
+.sales-prod-table{
+  width:100%;border-collapse:collapse;
+  font-size:12px;background:#fff;
+  border-radius:10px;overflow:hidden;
+  border:1px solid #D8CEC0;margin-bottom:14px;
+}
+.sales-prod-table th{
+  background:#3B2A1A;color:#fff;
+  padding:8px 10px;text-align:center;
+  font-weight:700;font-size:11px;
+}
+.sales-prod-table td{
+  padding:7px 10px;border-bottom:1px solid #EDE5D8;
+  color:#3B2A1A;text-align:center;
+}
+.sales-prod-table tr:last-child td{border-bottom:none;}
+.sales-prod-table td:nth-child(1){text-align:left;font-weight:600;}
+.sales-prod-table tr.total-row td{
+  background:#F0EBE3;font-weight:800;border-top:2px solid #D8CEC0;
+}
+
+.sales-date-card{
+  background:#fff;border:1px solid #D8CEC0;border-radius:12px;
+  overflow:hidden;margin-bottom:8px;
+}
+.sales-date-hd{
+  background:#F0EBE3;padding:8px 14px;
+  font-size:12px;font-weight:700;color:#3B2A1A;
+  display:flex;justify-content:space-between;
+}
+.sales-date-body{padding:8px 14px;}
+.sales-date-row{
+  display:flex;justify-content:space-between;
+  font-size:12px;color:#5A4830;padding:3px 0;
+  border-bottom:1px solid #F5F0EA;
+}
+.sales-date-row:last-child{border-bottom:none;}
+.sales-date-prod{font-weight:600;}
+.sales-date-qty{color:#6A9050;font-weight:700;}
+.sales-date-amt{color:#3B2A1A;font-weight:700;}
 </style>
 </head>
 <body>
@@ -1102,7 +1163,7 @@ html, body {
   </div>
   <!-- 둘째줄: 버튼들 -->
   <div class="statusbar-btns">
-    <button class="btn-sales" onclick="showSalesModal()">📊 매출</button>
+    
     <button class="btn-date-filter" id="btnDateFilter" onclick="toggleDatePanel()">📅 날짜 <span class="date-filter-badge" id="dateBadge">●</span></button>
     <button class="btn-refresh" onclick="fetchOrders(true)">↻ 새로고침</button>
   </div>
@@ -1147,14 +1208,21 @@ html, body {
 <!-- 탭 -->
 <div class="tabs">
   <button class="tab act" id="tab-all" onclick="switchTab('all')">주문</button>
-  <button class="tab" id="tab-new" onclick="switchTab('new')">신규 <span id="newTabCount"></span></button>
   <button class="tab" id="tab-paid" onclick="switchTab('paid')">입금완료</button>
+  <button class="tab" id="tab-sales" onclick="switchTab('sales')">매출 현황</button>
   <button class="tab" id="tab-inv" onclick="switchTab('inv')">상품관리</button>
 </div>
 
 <!-- 주문 목록 -->
 
 <!-- ── 재고 관리 탭 ── -->
+<!-- ── 매출 현황 패널 ── -->
+<div id="salesWrap" style="display:none;padding:12px 14px;overflow-y:auto;flex:1;">
+  <div id="salesTabContent">
+    <div style="text-align:center;padding:32px;color:#9A8870;font-size:13px;">불러오는 중...</div>
+  </div>
+</div>
+
 <div class="inv-wrap" id="invWrap" style="display:none;">
 
   <!-- 신규 상품 추가 폼 -->
@@ -1497,22 +1565,31 @@ function updateBadge(count) {
 // ── 탭 전환 ──
 function switchTab(tab) {
   currentTab = tab;
-  ['all','new','paid','inv'].forEach(function(t) {
+  ['all','paid','sales','inv'].forEach(function(t) {
     var el = document.getElementById('tab-'+t);
     if(el) el.classList.toggle('act', t===tab);
   });
-  // 입금완료 탭일 때만 체크/발송 바 표시
-  var checkWrap = document.getElementById('paidCheckWrap');
-  if(checkWrap) checkWrap.style.display = (tab === 'paid') ? 'flex' : 'none';
-  var orderList = document.getElementById('orderList');
-  var invWrap   = document.getElementById('invWrap');
+
+  var orderList  = document.getElementById('orderList');
+  var paidBar    = document.getElementById('paidCheckWrap');
+  var salesWrap  = document.getElementById('salesWrap');
+  var invWrap    = document.getElementById('invWrap');
+
+  // 모두 숨김 초기화
+  if(orderList) orderList.style.display  = 'none';
+  if(paidBar)   paidBar.style.display    = 'none';
+  if(salesWrap) salesWrap.style.display  = 'none';
+  if(invWrap)   invWrap.style.display    = 'none';
+
   if(tab === 'inv') {
-    if(orderList) orderList.style.display = 'none';
-    if(invWrap)   invWrap.style.display   = 'block';
+    if(invWrap) invWrap.style.display = 'block';
     loadProducts();
+  } else if(tab === 'sales') {
+    if(salesWrap) salesWrap.style.display = 'block';
+    renderSalesTab();
   } else {
     if(orderList) orderList.style.display = 'block';
-    if(invWrap)   invWrap.style.display   = 'none';
+    if(tab === 'paid' && paidBar) paidBar.style.display = 'flex';
     renderOrders();
   }
 }
@@ -1521,9 +1598,8 @@ function switchTab(tab) {
 function renderOrders() {
   var list = document.getElementById('orderList');
   var filtered = allOrders.filter(function(o) {
-    // 전체(주문) 탭: PAID 제외 (입금완료 탭에서만 표시)
+    // 주문 탭: PAID 제외
     if (currentTab === 'all'  && o.status === 'PAID')  return false;
-    if (currentTab === 'new'  && o.status !== 'NEW')   return false;
     if (currentTab === 'paid' && o.status !== 'PAID')  return false;
     if (!orderMatchesDate(o)) return false;
     // 검색 필터: 보내는 사람 이름
@@ -2821,6 +2897,149 @@ function doSendExcel() {
     var t=b.querySelector('.btn-txt'); if(t) t.textContent='메일 발송에 포함하기';
   });
   updatePaidBar();
+}
+
+
+// ══════════════════════════════
+// 매출 현황 탭
+// ══════════════════════════════
+function renderSalesTab() {
+  var wrap = document.getElementById('salesTabContent');
+  if(!wrap) return;
+
+  // 입금완료(PAID) 주문만 집계
+  var paidOrders = allOrders.filter(function(o){ return o.status === 'PAID'; });
+
+  if(paidOrders.length === 0) {
+    wrap.innerHTML = '<div style="text-align:center;padding:40px;color:#9A8870;font-size:13px;">🍐<br><br>입금완료 주문이 없어요.</div>';
+    return;
+  }
+
+  var totalBoxes  = 0;
+  var totalAmt    = 0;
+  var totalOrders = 0;
+  var prodMap     = {};  // {name: {boxes, prodAmt, delivAmt}}
+  var dateMap     = {};  // {date: {prodName: {boxes, prodAmt}}}
+  var dateOrder   = [];
+
+  paidOrders.forEach(function(o) {
+    if(!o.product || o.product === '-') return;
+    var p = parseProduct(o.product);
+    if(!p.name || p.qty <= 0) return;
+    var unitPrice = PRICE_MAP[p.name] || 0;
+    if(unitPrice <= 0) return;
+
+    var prodAmt  = unitPrice * p.qty;
+    var delivAmt = DELIVERY * p.qty;
+    var rowAmt   = prodAmt + delivAmt;
+
+    totalBoxes += p.qty;
+    totalAmt   += rowAmt;
+    totalOrders++;
+
+    // 상품별 집계
+    if(!prodMap[p.name]) prodMap[p.name] = {boxes:0, prodAmt:0, delivAmt:0};
+    prodMap[p.name].boxes    += p.qty;
+    prodMap[p.name].prodAmt  += prodAmt;
+    prodMap[p.name].delivAmt += delivAmt;
+
+    // 날짜별 집계 (KST 기준)
+    var rawDate = (o.submittedAt||'').slice(0,16);
+    var fmted = rawDate ? fmtDate(rawDate, true) : '날짜 미상';
+    if(dateOrder.indexOf(fmted) < 0) dateOrder.push(fmted);
+    if(!dateMap[fmted]) dateMap[fmted] = {};
+    if(!dateMap[fmted][p.name]) dateMap[fmted][p.name] = {boxes:0, prodAmt:0, delivAmt:0};
+    dateMap[fmted][p.name].boxes    += p.qty;
+    dateMap[fmted][p.name].prodAmt  += prodAmt;
+    dateMap[fmted][p.name].delivAmt += delivAmt;
+  });
+
+  var h = '';
+
+  // ── KPI 카드 3개 ──
+  h += '<div class="sales-kpi-row">'
+    + '<div class="sales-kpi">'
+      + '<div class="sales-kpi-label">입금완료 건수</div>'
+      + '<div class="sales-kpi-val">' + totalOrders + '</div>'
+      + '<div class="sales-kpi-unit">건</div>'
+    + '</div>'
+    + '<div class="sales-kpi">'
+      + '<div class="sales-kpi-label">총 박스</div>'
+      + '<div class="sales-kpi-val">' + totalBoxes + '</div>'
+      + '<div class="sales-kpi-unit">박스</div>'
+    + '</div>'
+    + '<div class="sales-kpi highlight">'
+      + '<div class="sales-kpi-label">총 매출</div>'
+      + '<div class="sales-kpi-val" style="font-size:14px;">' + totalAmt.toLocaleString() + '</div>'
+      + '<div class="sales-kpi-unit">원 (택배비 포함)</div>'
+    + '</div>'
+  + '</div>';
+
+  // ── 상품별 집계 테이블 ──
+  h += '<div class="sales-section-hd">📦 상품별 집계</div>';
+  h += '<table class="sales-prod-table"><thead><tr>'
+    + '<th>상품명</th><th>박스수</th><th>상품금액</th><th>택배비</th><th>합계</th>'
+    + '</tr></thead><tbody>';
+
+  var tableTotal = {boxes:0, prodAmt:0, delivAmt:0};
+  var prodNames = Object.keys(prodMap).sort();
+  prodNames.forEach(function(name) {
+    var d = prodMap[name];
+    var rowTotal = d.prodAmt + d.delivAmt;
+    tableTotal.boxes    += d.boxes;
+    tableTotal.prodAmt  += d.prodAmt;
+    tableTotal.delivAmt += d.delivAmt;
+    h += '<tr>'
+      + '<td>' + name + '</td>'
+      + '<td>' + d.boxes + '박스</td>'
+      + '<td>' + d.prodAmt.toLocaleString() + '원</td>'
+      + '<td>' + d.delivAmt.toLocaleString() + '원</td>'
+      + '<td style="font-weight:800;color:#6A9050;">' + rowTotal.toLocaleString() + '원</td>'
+    + '</tr>';
+  });
+  h += '<tr class="total-row">'
+    + '<td>합계</td>'
+    + '<td>' + tableTotal.boxes + '박스</td>'
+    + '<td>' + tableTotal.prodAmt.toLocaleString() + '원</td>'
+    + '<td>' + tableTotal.delivAmt.toLocaleString() + '원</td>'
+    + '<td>' + (tableTotal.prodAmt+tableTotal.delivAmt).toLocaleString() + '원</td>'
+  + '</tr>';
+  h += '</tbody></table>';
+
+  // ── 날짜별 입금완료 내역 ──
+  h += '<div class="sales-section-hd">📅 날짜별 입금완료 내역</div>';
+
+  // 최신 날짜 먼저
+  dateOrder.slice().reverse().forEach(function(date) {
+    var dayProds = dateMap[date];
+    var dayTotal = 0;
+    var dayBoxes = 0;
+    Object.keys(dayProds).forEach(function(n){
+      dayTotal += dayProds[n].prodAmt + dayProds[n].delivAmt;
+      dayBoxes += dayProds[n].boxes;
+    });
+
+    h += '<div class="sales-date-card">'
+      + '<div class="sales-date-hd">'
+        + '<span>' + date + '</span>'
+        + '<span>총 ' + dayBoxes + '박스 · ' + dayTotal.toLocaleString() + '원</span>'
+      + '</div>'
+      + '<div class="sales-date-body">';
+
+    Object.keys(dayProds).sort().forEach(function(name) {
+      var d = dayProds[name];
+      var rowAmt = d.prodAmt + d.delivAmt;
+      h += '<div class="sales-date-row">'
+        + '<span class="sales-date-prod">' + name + '</span>'
+        + '<span class="sales-date-qty">' + d.boxes + '박스</span>'
+        + '<span class="sales-date-amt">' + rowAmt.toLocaleString() + '원</span>'
+      + '</div>';
+    });
+
+    h += '</div></div>';
+  });
+
+  wrap.innerHTML = h;
 }
 
 // ── 자동 폴링 (30초마다) ──
