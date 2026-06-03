@@ -1403,35 +1403,46 @@ function speakAlert(count) {
     var text = '새로운 주문이 ' + count + '건 들어왔습니다.';
 
     function doSpeak() {
-      var msg = new SpeechSynthesisUtterance(text);
-      msg.lang = 'ko-KR';
-      msg.rate = 0.85;
-      msg.pitch = 1.0;
-      msg.volume = 1.0;  // 최대 볼륨
+      // Android Chrome: 기존 발화 취소 후 시작
+      window.speechSynthesis.cancel();
 
-      // 한국어 음성 찾기
+      function _speak(repeatCount) {
+        var msg = new SpeechSynthesisUtterance(text);
+        msg.lang = 'ko-KR';
+        msg.rate = 0.85;
+        msg.pitch = 1.0;
+        msg.volume = 1.0;
+
+        // 한국어 음성 찾기
+        var voices = window.speechSynthesis.getVoices();
+        var koVoice = voices.find(function(v){
+          return v.lang && (v.lang.indexOf('ko') === 0);
+        });
+        if(koVoice) msg.voice = koVoice;
+
+        msg.onstart = function(){ console.log('TTS 시작 (' + repeatCount + '회)'); };
+        msg.onerror = function(e){ console.log('TTS 오류:', e.error); };
+
+        // 2회 반복 (0→1→끝)
+        if(repeatCount < 1) {
+          msg.onend = function() {
+            setTimeout(function(){ _speak(repeatCount + 1); }, 400);
+          };
+        }
+        window.speechSynthesis.speak(msg);
+      }
+
+      // 음성 목록이 로드된 후 발화
       var voices = window.speechSynthesis.getVoices();
-      var koVoice = voices.find(function(v){
-        return v.lang && (v.lang.indexOf('ko') === 0);
-      });
-      if(koVoice) msg.voice = koVoice;
-
-      msg.onstart = function(){ console.log('TTS 시작'); };
-      msg.onerror = function(e){ console.log('TTS 오류:', e); };
-      // 첫 번째 발화 끝나면 한 번 더 반복
-      msg.onend = function() {
-        setTimeout(function(){
-          var msg2 = new SpeechSynthesisUtterance(text);
-          msg2.lang = 'ko-KR';
-          msg2.rate = 0.85;
-          msg2.pitch = 1.0;
-          msg2.volume = 1.0;
-          if(koVoice) msg2.voice = koVoice;
-          window.speechSynthesis.speak(msg2);
-        }, 300);
-      };
-
-      window.speechSynthesis.speak(msg);
+      if(voices.length > 0) {
+        _speak(0);
+      } else {
+        window.speechSynthesis.onvoiceschanged = function(){
+          window.speechSynthesis.onvoiceschanged = null;
+          _speak(0);
+        };
+        setTimeout(function(){ _speak(0); }, 500);
+      }
     }
 
     // 음성 목록이 로드됐는지 확인 후 실행
@@ -1540,9 +1551,11 @@ function fetchOrders(manual) {
       setTimeout(restoreLocalMemos, 100);
     })
     .catch(function(err) {
-      dot.className = 'status-dot';
+      dot.className = 'status-dot error';
       txt.textContent = '연결 오류 - 재시도 중';
-      console.error(err);
+      console.error('fetchOrders 오류:', err);
+      // 10초 후 자동 재시도
+      setTimeout(function(){ fetchOrders(false); }, 10000);
     });
 }
 
@@ -2586,7 +2599,7 @@ function pmAddProduct() {
   var name = (document.getElementById('pmNewName').value||'').trim();
   var price = parseInt(document.getElementById('pmNewPrice').value)||30000;
   if(!name){ alert('상품명을 입력해 주세요.'); return; }
-  pmProducts.push({name:name, price:price});
+  pmProducts.push({name:name, price:price, delivery:DELIVERY, stock:999, visible:true});
   document.getElementById('pmNewName').value = '';
   renderPmList();
 }
@@ -2597,8 +2610,10 @@ function pmSaveProducts() {
   btn.disabled = true; btn.textContent = '저장 중...';
 
   // saveproducts API용 포맷
-  var saveData = pmProducts.map(function(p){
-    return {name:p.name, price:p.price, delivery:4000, stock:999, visible:true};
+  // localProducts(인라인 편집) + pmProducts(새 상품 추가) 통합 저장
+  var baseList = (localProducts && localProducts.length > 0) ? localProducts : pmProducts;
+  var saveData = baseList.map(function(p){
+    return {name:p.name, price:p.price, delivery:p.delivery||DELIVERY, stock:p.stock||999, visible: p.visible !== false};
   });
 
   var url = SCRIPT_URL + '?action=saveproducts&data=' + encodeURIComponent(JSON.stringify(saveData)) + '&t=' + Date.now();
