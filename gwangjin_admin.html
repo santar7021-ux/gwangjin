@@ -2824,47 +2824,45 @@ function openExcelModal() {
   if(selectedPaidRows.size === 0) { showToast('발송할 주문을 선택해 주세요.'); return; }
 
   var rows = [];
-  var senders = [];
-  // Set에서 rows 수집, DOM에서 sender 이름 보조
-  document.querySelectorAll('.paid-select-btn').forEach(function(btn) {
-    var rowKey = btn.getAttribute('data-rows')||'';
-    if(selectedPaidRows.has(rowKey)) {
-      rowKey.split(',').forEach(function(r){ if(r.trim()) rows.push(r.trim()); });
-      senders.push(btn.getAttribute('data-sender')||'');
-    }
+  var senderList = []; // {sender, prods}
+
+  // selectedPaidRows(Set)에서 row 번호 수집
+  selectedPaidRows.forEach(function(rowKey) {
+    rowKey.split(',').forEach(function(r){ if(r.trim()) rows.push(r.trim()); });
   });
-  // DOM에 없는 경우 Set에서 직접 rows 수집
-  if(rows.length === 0) {
-    selectedPaidRows.forEach(function(rowKey){
-      rowKey.split(',').forEach(function(r){ if(r.trim()) rows.push(r.trim()); });
-    });
-  }
+
+  // 주문 리스트 UI 구성 (allOrders에서 매핑)
+  selectedPaidRows.forEach(function(rowKey) {
+    var grpRows = rowKey.split(',').map(Number);
+    var grpOrders = allOrders.filter(function(o){ return grpRows.indexOf(o.row) >= 0; });
+    if(!grpOrders.length) return;
+    var first = grpOrders[0];
+    var prods = grpOrders.map(function(o){ return o.product||''; }).filter(Boolean).join(' / ');
+    senderList.push({sender: first.senderName||'주문자', prods: prods});
+  });
 
   var now = new Date();
   var kst = new Date(now.getTime() + 9*60*60*1000);
-  var mo = kst.getUTCMonth()+1;
-  var day = kst.getUTCDate();
+  var mo = kst.getUTCMonth()+1, day = kst.getUTCDate();
   var subject = '광진농원 ' + mo + '월 ' + day + '일';
 
   // 헤더 부제목
-  document.getElementById('excelSendHdSub').textContent = '총 ' + selected.length + '건 선택됨';
+  var hdSub = document.getElementById('excelSendHdSub');
+  if(hdSub) hdSub.textContent = '총 ' + selectedPaidRows.size + '건 선택됨';
 
-  // 주문 리스트
-  var listHtml = senders.map(function(sname, i) {
-    var grpRows = (selected[i].getAttribute('data-rows')||'').split(',').map(Number);
-    var prods = allOrders
-      .filter(function(o){ return grpRows.indexOf(o.row) >= 0; })
-      .map(function(o){ return o.product||''; })
-      .filter(Boolean).join(' / ');
-    return '<div class="excel-order-item">'
-      + '<span class="excel-order-ico">📦</span>'
-      + '<div><div class="excel-order-name">' + (sname||'주문자') + '</div>'
-        + '<div class="excel-order-prod">' + (prods||'-') + '</div>'
-      + '</div></div>';
-  }).join('');
-  document.getElementById('excelOrderList').innerHTML = listHtml;
+  // 주문 리스트 UI
+  var listEl = document.getElementById('excelOrderList');
+  if(listEl) {
+    listEl.innerHTML = senderList.map(function(s){
+      return '<div class="excel-order-item">'
+        + '<span class="excel-order-ico">📦</span>'
+        + '<div><div class="excel-order-name">' + s.sender + '</div>'
+          + '<div class="excel-order-prod">' + (s.prods||'-') + '</div>'
+        + '</div></div>';
+    }).join('');
+  }
 
-  // 기본 시간: KST 지금 + 1시간
+  // 기본 시간: KST 지금 + 1시간, 5분 단위 올림
   var kstH = kst.getUTCHours();
   var kstM = kst.getUTCMinutes();
   var nextH = (kstH + 1) % 24;
@@ -2876,9 +2874,9 @@ function openExcelModal() {
   if(hourEl) hourEl.value = p2(nextH);
   if(minEl)  minEl.value  = p2(nextM);
 
-  // 데이터 저장
+  // overlay에 데이터 저장
   var overlay = document.getElementById('excelSendOverlay');
-  overlay.dataset.rows = rows.join(',');
+  overlay.dataset.rows    = rows.join(',');
   overlay.dataset.subject = subject;
   overlay.classList.add('show');
 }
@@ -2890,77 +2888,73 @@ function closeExcelModal() {
 // 엑셀 발송 예약
 function doSendExcel() {
   var overlay = document.getElementById('excelSendOverlay');
-  var rows = overlay.dataset.rows || '';
+  var rows    = overlay.dataset.rows    || '';
   var subject = overlay.dataset.subject || '';
-  var btn = document.getElementById('excelSendOkBtn');
+  var btn     = document.getElementById('excelSendOkBtn');
   if(!rows) { showToast('발송할 주문이 없어요.'); return; }
 
   var hh = parseInt(document.getElementById('excelSendHour').value)||0;
   var mm = parseInt(document.getElementById('excelSendMin').value)||0;
 
-  // 예약 시간까지 남은 ms 계산 (KST)
-  var now = new Date();
+  // 예약 시간 계산 (KST→UTC)
+  var now    = new Date();
   var kstNow = new Date(now.getTime() + 9*60*60*1000);
-  var sendAtKST = new Date(Date.UTC(
-    kstNow.getUTCFullYear(), kstNow.getUTCMonth(), kstNow.getUTCDate(),
-    hh - 9 + (hh < 9 ? 24 : 0), mm  // KST → UTC
-  ));
-  // 날짜 조정
   var sendUTC = new Date(Date.UTC(
     kstNow.getUTCFullYear(), kstNow.getUTCMonth(), kstNow.getUTCDate(),
     hh, mm
   ));
-  // KST 시간으로 오늘 UTC 기준 계산
   sendUTC = new Date(sendUTC.getTime() - 9*60*60*1000);
   var msLeft = sendUTC.getTime() - Date.now();
-
   var p2 = function(n){ return String(n).padStart(2,'0'); };
-  var timeStr = p2(hh) + ':' + p2(mm);
 
-  btn.disabled = true; btn.textContent = '예약 중...';
+  btn.disabled = true;
+  btn.textContent = '발송 중...';
 
-  function execSend() {
+  function execSend(onDone) {
     var url = SCRIPT_URL
       + '?action=sendexcel'
-      + '&rows=' + encodeURIComponent(rows)
+      + '&rows='    + encodeURIComponent(rows)
       + '&subject=' + encodeURIComponent(subject)
-      + '&t=' + Date.now();
+      + '&t='       + Date.now();
 
-    var p = window.location.href.indexOf('script.google.com') >= 0
-      ? fetch(url).then(function(r){return r.json();})
-      : jsonp(url);
-
-    p.then(function(data) {
-      if(data.result === 'ok') {
-        showToast('✓ 엑셀 메일이 santar7021@naver.com 으로 발송됐어요!');
-      } else {
-        showToast('발송 실패: ' + (data.message||'오류'));
-      }
-    }).catch(function() {
-      showToast('발송 실패 - 네트워크 오류');
-    });
+    jsonp(url)
+      .then(function(data) {
+        if(data.result === 'ok') {
+          showToast('✓ 엑셀 메일이 santar7021@naver.com 으로 발송됐어요!');
+          selectedPaidRows.clear();
+          document.querySelectorAll('.paid-select-btn.selected').forEach(function(b){
+            b.classList.remove('selected');
+            var t = b.querySelector('.btn-txt');
+            if(t) t.textContent = '메일 발송에 포함하기';
+          });
+          updatePaidBar();
+        } else {
+          showToast('발송 실패: ' + (data.message||'오류'));
+        }
+        if(onDone) onDone();
+      })
+      .catch(function(err) {
+        console.error('발송 오류:', err);
+        showToast('발송 실패 - 네트워크 오류. Apps Script 재배포 확인 필요');
+        if(onDone) onDone();
+      });
   }
 
   if(msLeft <= 30000) {
-    // 30초 이내 또는 이미 지난 시간 → 즉시 발송
-    execSend();
-    btn.disabled = false; btn.textContent = '📤 발송 예약하기';
-    closeExcelModal();
-    showToast('✓ 지금 즉시 발송됩니다!');
+    // 즉시 발송
+    execSend(function(){
+      btn.disabled = false;
+      btn.textContent = '📤 발송 예약하기';
+      closeExcelModal();
+    });
   } else {
-    // 예약
-    setTimeout(execSend, msLeft);
-    btn.disabled = false; btn.textContent = '📤 발송 예약하기';
+    // 예약 발송
+    btn.disabled = false;
+    btn.textContent = '📤 발송 예약하기';
     closeExcelModal();
-    showToast('✓ ' + timeStr + '에 자동 발송 예약됐어요!');
+    showToast('✓ ' + p2(hh) + ':' + p2(mm) + '에 자동 발송 예약됐어요!');
+    setTimeout(function(){ execSend(null); }, msLeft);
   }
-
-  // 선택 해제
-  document.querySelectorAll('.paid-select-btn.selected').forEach(function(b){
-    b.classList.remove('selected');
-    var t=b.querySelector('.btn-txt'); if(t) t.textContent='메일 발송에 포함하기';
-  });
-  updatePaidBar();
 }
 
 
