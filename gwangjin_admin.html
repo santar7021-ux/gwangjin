@@ -1302,6 +1302,16 @@ var SCRIPT_URL = (function(){
 // Apps Script redirect 대응 - onerror 없이 timeout만 사용
 // ══════════════════════════════
 var _jsonpId = 0;
+
+// ── 전역 상태 변수 ──
+var allOrders        = [];
+var currentTab       = 'all';
+var searchQuery      = '';
+var selectedPaidRows = new Set(); // 입금완료 탭 선택 상태 (폴링 후에도 유지)
+var isFirstLoad      = true;
+var knownOrderNos    = new Set();
+var localProducts    = [];
+
 function jsonp(url) {
   return new Promise(function(resolve, reject) {
     var cbName = '_jp_' + (++_jsonpId) + '_' + Date.now();
@@ -1332,10 +1342,6 @@ function jsonp(url) {
   });
 }
 
-let allOrders = [];
-let knownOrderNos = new Set();
-let currentTab = 'all';
-let isFirstLoad = true;
 let audioCtx = null;
 
 // ── 오디오 컨텍스트 초기화 (터치 후 활성화) ──
@@ -2225,8 +2231,7 @@ function orderMatchesDate(o) {
 
 // ══════════════════════════════
 // 재고 관리
-// ══════════════════════════════
-var localProducts = [];  // 로컬 상품 목록 (수정 중)
+// ══════════════════════════════  // 로컬 상품 목록 (수정 중)
 
 // 상품 목록 불러오기
 function loadProducts() {
@@ -2731,7 +2736,6 @@ function requestInvoiceByKey(btn) {
 // ══════════════════════════════
 // 검색 필터
 // ══════════════════════════════
-var searchQuery = '';
 
 function onSearchInput(val) {
   searchQuery = val.trim();
