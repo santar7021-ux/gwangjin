@@ -1762,12 +1762,6 @@ function renderOrders() {
       } else {
         html += '<div class="card-row"><span class="card-k">접수알림</span><span class="card-v" style="color:#9A8870;">첫번째 보내는분</span></div>';
       }
-      // 제주·산간 택배비 추가 버튼 (PAID 아닐 때만)
-      if(orders[0].status !== 'PAID') {
-        var _jejuBtnCls = _jejuFee > 0 ? 'btn-jeju active' : 'btn-jeju';
-        var _jejuBtnTxt = _jejuFee > 0 ? '🏝 제주·산간 추가 완료 (클릭 시 취소)' : '🏝 제주·산간 택배비 추가';
-        html += '<button class="' + _jejuBtnCls + '" data-gkey="' + encodeURIComponent(_grpKey) + '">' + _jejuBtnTxt + '</button>';
-      }
 
       // 총 금액 요약 (제주·산간 추가비 포함)
       var _grandTotal = totalAmt + _jejuFee;
@@ -1784,6 +1778,12 @@ function renderOrders() {
 
       }
 
+      // 제주·산간 버튼: card-body 밖 (클릭 가능하도록)
+      if(orders[0].status !== 'PAID' && totalAmt > 0) {
+        var _jejuBtnCls2 = _jejuFee > 0 ? 'btn-jeju active' : 'btn-jeju';
+        var _jejuBtnTxt2 = _jejuFee > 0 ? '✓ 제주·산간 택배비 포함됨 (취소하려면 클릭)' : '🏝 제주·산간 택배비 추가 (+4,000원)';
+        html += '<button class="' + _jejuBtnCls2 + '" data-gkey="' + encodeURIComponent(_grpKey) + '">' + _jejuBtnTxt2 + '</button>';
+      }
       html += '</div>'; // card-body
 
       // 관리자 메모
@@ -1831,6 +1831,13 @@ function renderOrders() {
   });
 
   list.innerHTML = html;
+  // 제주·산간 버튼 이벤트 바인딩
+  list.querySelectorAll('.btn-jeju').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      var gkey = decodeURIComponent(this.getAttribute('data-gkey')||'');
+      if(gkey) toggleJeju(gkey);
+    });
+  });
   setTimeout(restoreLocalMemos, 50);
   // 입금완료 탭: 선택 상태 복원 (폴링/재렌더 후에도 유지)
   setTimeout(function(){
