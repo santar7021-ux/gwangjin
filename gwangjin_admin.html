@@ -1762,6 +1762,12 @@ function renderOrders() {
       } else {
         html += '<div class="card-row"><span class="card-k">접수알림</span><span class="card-v" style="color:#9A8870;">첫번째 보내는분</span></div>';
       }
+      // 제주·산간 택배비 추가 버튼 (PAID 아닐 때만)
+      if(orders[0].status !== 'PAID') {
+        var _jejuBtnCls = _jejuFee > 0 ? 'btn-jeju active' : 'btn-jeju';
+        var _jejuBtnTxt = _jejuFee > 0 ? '🏝 제주·산간 추가 완료 (클릭 시 취소)' : '🏝 제주·산간 택배비 추가';
+        html += '<button class="' + _jejuBtnCls + '" data-gkey="' + encodeURIComponent(_grpKey) + '">' + _jejuBtnTxt + '</button>';
+      }
 
       // 총 금액 요약 (제주·산간 추가비 포함)
       var _grandTotal = totalAmt + _jejuFee;
@@ -1775,12 +1781,7 @@ function renderOrders() {
             : '')
           + '<div class="card-total-row total"><span class="card-total-k">총 주문 금액</span><span class="card-total-v total">₩ ' + _grandTotal.toLocaleString() + '</span></div>'
         + '</div>';
-        // 입금완료(PAID)가 아닐 때만 제주 추가 버튼 표시
-        if(orders[0].status !== 'PAID') {
-          var _jejuBtnCls = _jejuFee > 0 ? 'btn-jeju active' : 'btn-jeju';
-          var _jejuBtnTxt = _jejuFee > 0 ? '🏝 제주·산간 추가 완료 (클릭 시 취소)' : '🏝 제주·산간 택배비 추가';
-          html += '<button class="' + _jejuBtnCls + '" data-gkey="' + encodeURIComponent(_grpKey) + '">' + _jejuBtnTxt + '</button>';
-        }
+
       }
 
       html += '</div>'; // card-body
