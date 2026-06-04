@@ -1317,7 +1317,7 @@ function jsonp(url) {
         .then(function(r){return r.json();})
         .then(resolve)
         .catch(reject);
-    }, 8000);
+    }, 20000);
     window[cbName] = function(data) {
       if(done) return;
       done = true;
@@ -1551,11 +1551,25 @@ function fetchOrders(manual) {
       setTimeout(restoreLocalMemos, 100);
     })
     .catch(function(err) {
-      dot.className = 'status-dot error';
-      txt.textContent = '연결 오류 - 재시도 중';
-      console.error('fetchOrders 오류:', err);
-      // 10초 후 자동 재시도
-      setTimeout(function(){ fetchOrders(false); }, 10000);
+      console.error('JSONP 실패, fetch 재시도:', err);
+      // JSONP 실패 시 fetch로 재시도 (CORS 헤더 없으면 실패하지만 시도)
+      fetch(apiUrl)
+        .then(function(r){ return r.json(); })
+        .then(function(data) {
+          if(data.result !== 'ok') throw new Error(data.message);
+          dot.className = 'status-dot online';
+          txt.textContent = '실시간 모니터링 중';
+          allOrders = data.orders;
+          isFirstLoad = false;
+          renderOrders();
+          updateBadge(data.newCount);
+        })
+        .catch(function(err2) {
+          dot.className = 'status-dot error';
+          txt.textContent = '연결 오류 - 재시도 중';
+          console.error('fetchOrders 최종 실패:', err2);
+          setTimeout(function(){ fetchOrders(false); }, 15000);
+        });
     });
 }
 
@@ -2791,27 +2805,36 @@ function togglePaidSelect(btn) {
 
 // 선택 바 업데이트
 function updatePaidBar() {
-  var selected = document.querySelectorAll('.paid-select-btn.selected');
+  // DOM이 아닌 selectedPaidRows Set 기준으로 카운트 (재렌더 후에도 정확)
+  var count = selectedPaidRows.size;
   var info = document.getElementById('paidCheckInfo');
-  var btn = document.getElementById('btnSendExcel');
-  if(info) info.textContent = selected.length > 0
-    ? selected.length + '건 선택됨'
+  var btn  = document.getElementById('btnSendExcel');
+  if(info) info.textContent = count > 0
+    ? count + '건 선택됨'
     : '아래 주문에서 선택해 주세요';
-  if(btn) btn.classList.toggle('show', selected.length > 0);
+  if(btn) btn.classList.toggle('show', count > 0);
 }
 
 // 엑셀 발송 팝업 열기
 function openExcelModal() {
-  var selected = document.querySelectorAll('.paid-select-btn.selected');
-  if(!selected.length) { showToast('발송할 주문을 선택해 주세요.'); return; }
+  if(selectedPaidRows.size === 0) { showToast('발송할 주문을 선택해 주세요.'); return; }
 
   var rows = [];
   var senders = [];
-  selected.forEach(function(btn) {
+  // Set에서 rows 수집, DOM에서 sender 이름 보조
+  document.querySelectorAll('.paid-select-btn').forEach(function(btn) {
     var rowKey = btn.getAttribute('data-rows')||'';
-    rowKey.split(',').forEach(function(r){ rows.push(r.trim()); });
-    senders.push(btn.getAttribute('data-sender')||'');
+    if(selectedPaidRows.has(rowKey)) {
+      rowKey.split(',').forEach(function(r){ if(r.trim()) rows.push(r.trim()); });
+      senders.push(btn.getAttribute('data-sender')||'');
+    }
   });
+  // DOM에 없는 경우 Set에서 직접 rows 수집
+  if(rows.length === 0) {
+    selectedPaidRows.forEach(function(rowKey){
+      rowKey.split(',').forEach(function(r){ if(r.trim()) rows.push(r.trim()); });
+    });
+  }
 
   var now = new Date();
   var kst = new Date(now.getTime() + 9*60*60*1000);
