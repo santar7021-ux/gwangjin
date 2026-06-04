@@ -1725,6 +1725,10 @@ function renderOrders() {
       + '</div>';
 
       // 카드 바디
+      // 그룹 키 및 제주비 미리 계산 (card-body 전체에서 사용)
+      var _grpKey  = first.orderNo + '::' + (first.orderIndex||'');
+      var _jejuFee = jejuFeeMap[_grpKey] || 0;
+
       html += '<div class="card-body">'
         + '<div class="card-section">보내는 사람</div>'
         + '<div class="card-row"><span class="card-k">성명</span><span class="card-v">' + (first.senderName||'주문자') + '</span></div>'
@@ -1760,8 +1764,6 @@ function renderOrders() {
       }
 
       // 총 금액 요약 (제주·산간 추가비 포함)
-      var _grpKey = first.orderNo + '::' + (first.orderIndex||'');
-      var _jejuFee = jejuFeeMap[_grpKey] || 0;
       var _grandTotal = totalAmt + _jejuFee;
 
       if(totalAmt > 0) {
@@ -3119,7 +3121,7 @@ function renderSalesTab() {
 // ══════════════════════════════
 // jejuFeeMap: {orderKey: 추가금액} - 기본 5000원
 var jejuFeeMap = {};
-var JEJU_FEE = 5000; // 제주·산간 추가 택배비
+var JEJU_FEE = 4000; // 제주·산간 추가 택배비
 
 function toggleJeju(grpKey) {
   if(jejuFeeMap[grpKey]) {
