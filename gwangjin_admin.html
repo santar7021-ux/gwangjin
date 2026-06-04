@@ -1759,13 +1759,26 @@ function renderOrders() {
         html += '<div class="card-row"><span class="card-k">접수알림</span><span class="card-v" style="color:#9A8870;">첫번째 보내는분</span></div>';
       }
 
-      // 총 금액 요약
+      // 총 금액 요약 (제주·산간 추가비 포함)
+      var _grpKey = first.orderNo + '::' + (first.orderIndex||'');
+      var _jejuFee = jejuFeeMap[_grpKey] || 0;
+      var _grandTotal = totalAmt + _jejuFee;
+
       if(totalAmt > 0) {
-        html += '<div class="card-total-wrap">'
+        html += '<div class="card-total-wrap" id="total-' + _grpKey.replace(/[^a-zA-Z0-9]/g,'_') + '">'
           + '<div class="card-total-row"><span class="card-total-k">상품 금액</span><span class="card-total-v">' + (totalAmt - delivAmt).toLocaleString() + '원</span></div>'
           + '<div class="card-total-row"><span class="card-total-k">택배비</span><span class="card-total-v">' + delivAmt.toLocaleString() + '원 (' + totalBoxes + '박스)</span></div>'
-          + '<div class="card-total-row total"><span class="card-total-k">총 주문 금액</span><span class="card-total-v total">₩ ' + totalAmt.toLocaleString() + '</span></div>'
+          + (_jejuFee > 0
+            ? '<div class="card-total-row jeju-fee-row"><span class="card-total-k">🏝 제주·산간 추가</span><span class="card-total-v" style="color:#4A7CC0;">' + _jejuFee.toLocaleString() + '원</span></div>'
+            : '')
+          + '<div class="card-total-row total"><span class="card-total-k">총 주문 금액</span><span class="card-total-v total">₩ ' + _grandTotal.toLocaleString() + '</span></div>'
         + '</div>';
+        // 입금완료(PAID)가 아닐 때만 제주 추가 버튼 표시
+        if(orders[0].status !== 'PAID') {
+          var _jejuBtnCls = _jejuFee > 0 ? 'btn-jeju active' : 'btn-jeju';
+          var _jejuBtnTxt = _jejuFee > 0 ? '🏝 제주·산간 추가 완료 (클릭 시 취소)' : '🏝 제주·산간 택배비 추가';
+          html += '<button class="' + _jejuBtnCls + '" data-gkey="' + encodeURIComponent(_grpKey) + '">' + _jejuBtnTxt + '</button>';
+        }
       }
 
       html += '</div>'; // card-body
@@ -3098,6 +3111,30 @@ function renderSalesTab() {
   });
 
   wrap.innerHTML = h;
+}
+
+
+// ══════════════════════════════
+// 제주·산간 택배비 관리
+// ══════════════════════════════
+// jejuFeeMap: {orderKey: 추가금액} - 기본 5000원
+var jejuFeeMap = {};
+var JEJU_FEE = 5000; // 제주·산간 추가 택배비
+
+function toggleJeju(grpKey) {
+  if(jejuFeeMap[grpKey]) {
+    // 추가된 상태 → 취소
+    delete jejuFeeMap[grpKey];
+    renderOrders();
+  } else {
+    // 추가 - 금액 입력받기
+    var input = prompt('제주·산간 추가 택배비를 입력하세요 (원)', JEJU_FEE);
+    if(input === null) return; // 취소
+    var fee = parseInt(input);
+    if(isNaN(fee) || fee <= 0) { showToast('올바른 금액을 입력해 주세요.'); return; }
+    jejuFeeMap[grpKey] = fee;
+    renderOrders();
+  }
 }
 
 // ── 자동 폴링 (30초마다) ──
