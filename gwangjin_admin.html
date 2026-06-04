@@ -1603,6 +1603,7 @@ function switchTab(tab) {
   } else {
     if(orderList) orderList.style.display = 'block';
     if(tab === 'paid' && paidBar) paidBar.style.display = 'flex';
+    // paid 탭 벗어났다가 돌아올 때는 선택 유지
     renderOrders();
   }
 }
@@ -1795,7 +1796,20 @@ function renderOrders() {
 
   list.innerHTML = html;
   setTimeout(restoreLocalMemos, 50);
-  if(currentTab === 'paid') setTimeout(updatePaidBar, 100);
+  // 입금완료 탭: 선택 상태 복원 (폴링/재렌더 후에도 유지)
+  setTimeout(function(){
+    if(currentTab === 'paid') {
+      document.querySelectorAll('.paid-select-btn').forEach(function(btn) {
+        var rowKey = btn.getAttribute('data-rows') || '';
+        if(selectedPaidRows.has(rowKey)) {
+          btn.classList.add('selected');
+          var txtEl = btn.querySelector('.btn-txt');
+          if(txtEl) txtEl.textContent = '✓ 발송에 포함됨';
+        }
+      });
+    }
+    updatePaidBar();
+  }, 80);
 }
 
 
@@ -2761,10 +2775,17 @@ function markPaidByKey(btn) {
 
 // 선택 토글 버튼 클릭
 function togglePaidSelect(btn) {
-  btn.classList.toggle('selected');
+  var rowKey = btn.getAttribute('data-rows') || '';
   var isSelected = btn.classList.contains('selected');
+  if(isSelected) {
+    btn.classList.remove('selected');
+    selectedPaidRows.delete(rowKey);
+  } else {
+    btn.classList.add('selected');
+    selectedPaidRows.add(rowKey);
+  }
   var txtEl = btn.querySelector('.btn-txt');
-  if(txtEl) txtEl.textContent = isSelected ? '✓ 발송에 포함됨' : '메일 발송에 포함하기';
+  if(txtEl) txtEl.textContent = !isSelected ? '✓ 발송에 포함됨' : '메일 발송에 포함하기';
   updatePaidBar();
 }
 
@@ -2787,7 +2808,8 @@ function openExcelModal() {
   var rows = [];
   var senders = [];
   selected.forEach(function(btn) {
-    (btn.getAttribute('data-rows')||'').split(',').forEach(function(r){ rows.push(r.trim()); });
+    var rowKey = btn.getAttribute('data-rows')||'';
+    rowKey.split(',').forEach(function(r){ rows.push(r.trim()); });
     senders.push(btn.getAttribute('data-sender')||'');
   });
 
