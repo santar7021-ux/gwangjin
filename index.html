@@ -1750,8 +1750,15 @@ function iA(p) { AS[p] = {si:'',sg:'',eu:'',open:false}; }
 
 function togA(p) {
   var st = AS[p]; st.open = !st.open;
+  var scrollY = window.pageYOffset || document.documentElement.scrollTop;
   document.getElementById(p+'-panel').classList.toggle('open', st.open);
   if (st.open && !document.getElementById(p+'-si').children.length) bSi(p);
+  // 패널 열림으로 인한 레이아웃 변경 후 스크롤 위치 유지
+  requestAnimationFrame(function(){
+    requestAnimationFrame(function(){
+      window.scrollTo(0, scrollY);
+    });
+  });
 }
 function bSi(p) {
   var c = document.getElementById(p+'-si'); c.innerHTML = '';
@@ -1763,6 +1770,7 @@ function bSi(p) {
 function sSi(p,v,btn) {
   AS[p].si=v; AS[p].sg=''; AS[p].eu='';
   document.getElementById(p+'-si').querySelectorAll('.ach').forEach(function(b){b.classList.toggle('sel',b===btn);});
+  var scrollY = window.pageYOffset || document.documentElement.scrollTop;
   document.getElementById(p+'-sg-wrap').style.display='block';
   document.getElementById(p+'-eu-wrap').style.display='none';
   var sc = document.getElementById(p+'-sg'); sc.innerHTML='';
@@ -1771,10 +1779,12 @@ function sSi(p,v,btn) {
     b.onclick = function() { sSg(p,v,k,b); }; sc.appendChild(b);
   });
   uD(p);
+  requestAnimationFrame(function(){ window.scrollTo(0, scrollY); });
 }
 function sSg(p,si,v,btn) {
   AS[p].sg=v; AS[p].eu='';
   document.getElementById(p+'-sg').querySelectorAll('.ach').forEach(function(b){b.classList.toggle('sel',b===btn);});
+  var scrollY = window.pageYOffset || document.documentElement.scrollTop;
   document.getElementById(p+'-eu-wrap').style.display='block';
   var ec = document.getElementById(p+'-eu'); ec.innerHTML='';
   DB[si][v].forEach(function(k) {
@@ -1782,14 +1792,21 @@ function sSg(p,si,v,btn) {
     b.onclick = function() { sEu(p,k,b); }; ec.appendChild(b);
   });
   uD(p);
+  requestAnimationFrame(function(){ window.scrollTo(0, scrollY); });
 }
 function sEu(p,v,btn) {
   AS[p].eu=v;
   document.getElementById(p+'-eu').querySelectorAll('.ach').forEach(function(b){b.classList.toggle('sel',b===btn);});
   AS[p].open=false;
+  // 스크롤 위치 저장
+  var scrollY = window.pageYOffset || document.documentElement.scrollTop;
   document.getElementById(p+'-panel').classList.remove('open');
   document.getElementById(p+'-detail-wrap').style.display='block';
   uD(p);
+  // 레이아웃 변경 후 스크롤 위치 복원 (받는사람으로 넘어가는 현상 방지)
+  requestAnimationFrame(function(){
+    window.scrollTo(0, scrollY);
+  });
 }
 function uD(p) {
   var st=AS[p]; if(!st)return;
@@ -1837,16 +1854,9 @@ function addRcpt(oid) {
   var rid = rcptCount;
   if(!rcptData[oid]) rcptData[oid]=[];
   rcptData[oid].push(rid);
-  // renderOrders 전체 재렌더 대신 rcpt만 갱신 (보내는사람 입력값 보존)
+  // 기존 블록 보존, 새 받는사람만 추가
   renderRcpts(oid);
-  // 추가된 받는사람으로 스크롤
-  setTimeout(function(){
-    var list = document.getElementById('rcpt-list-'+oid);
-    if(list){
-      var blocks = list.querySelectorAll('.rcpt-block');
-      if(blocks.length > 0) blocks[blocks.length-1].scrollIntoView({behavior:'smooth',block:'start'});
-    }
-  }, 100);
+  // 자동 스크롤 제거 - 화면 위치 그대로 유지
 }
 
 function delRcpt(oid, rid) {
