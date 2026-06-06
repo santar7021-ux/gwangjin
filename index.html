@@ -876,6 +876,48 @@ html, body {
   transition:all .15s;margin-top:2px;
 }
 .btn-add-prod:hover{border-color:#6A9050;color:#6A9050;background:#F0F7EA;}
+
+/* ── 매장 주소 ── */
+.intro-addr-wrap{
+  display:flex;align-items:center;justify-content:center;gap:8px;
+  margin:4px 0 0;
+}
+.intro-addr-txt{
+  font-size:12px;color:rgba(255,255,255,.75);
+  letter-spacing:.2px;
+}
+.intro-addr-copy{
+  border:none;background:rgba(255,255,255,.15);
+  color:rgba(255,255,255,.8);
+  border-radius:6px;padding:3px 8px;
+  font-size:11px;font-weight:600;cursor:pointer;
+  font-family:inherit;transition:all .15s;
+}
+.intro-addr-copy:hover{background:rgba(255,255,255,.25);}
+.intro-addr-copy:active{background:rgba(255,255,255,.35);}
+
+/* ── 연락하기 버튼 ── */
+.btn-contact{
+  display:flex;align-items:center;justify-content:center;gap:10px;
+  width:100%;padding:15px;margin-top:10px;
+  border:none;border-radius:14px;
+  background:linear-gradient(135deg,#2D5A1F,#4A8030);
+  color:#fff;font-size:15px;font-weight:700;
+  text-decoration:none;font-family:inherit;
+  transition:all .18s;
+  box-shadow:0 3px 10px rgba(45,90,31,.3);
+}
+.btn-contact:hover{background:linear-gradient(135deg,#3A7028,#5A9040);box-shadow:0 4px 14px rgba(45,90,31,.4);}
+.btn-contact:active{transform:scale(.98);}
+.btn-contact-ico{
+  width:32px;height:32px;border-radius:50%;
+  background:rgba(255,255,255,.2);
+  display:flex;align-items:center;justify-content:center;
+  font-size:17px;flex-shrink:0;
+}
+.btn-contact-txt{display:flex;flex-direction:column;align-items:flex-start;}
+.btn-contact-title{font-size:14px;font-weight:800;line-height:1.2;}
+.btn-contact-sub{font-size:11px;font-weight:500;opacity:.8;margin-top:1px;}
 </style>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -1083,6 +1125,10 @@ html, body {
     <div class="intro-hero-content">
       <div class="intro-farm-name">남양주 먹골배 광진농원</div>
       <div class="intro-farm-sub">산지 직배송 택배 주문서</div>
+      <div class="intro-addr-wrap">
+        <span class="intro-addr-txt">📍 경기 남양주시 별내면 광전리 269-2</span>
+        <button class="intro-addr-copy" onclick="copyAddr()">복사</button>
+      </div>
     </div>
   </div>
   <div class="intro-gold-bar"></div>
@@ -1115,6 +1161,9 @@ html, body {
           <div class="intro-btn-sub">10박스 초과 주문</div>
         </div>
       </button>
+      <a class="btn-contact" href="tel:010-7146-1084">
+        📞 광진농원 연락하기
+      </a>
     </div>
   </div>
   </div><!-- /#intro-order-panel -->
@@ -1742,6 +1791,40 @@ function renderMyOrders(orders, nos) {
   });
 
   listEl.innerHTML = html || '<div class="my-order-empty"><div class="my-order-empty-ico">🍐</div><div>주문 내역이 없어요.</div></div>';
+}
+
+
+// ── 매장 주소 복사 ──
+function copyAddr() {
+  var addr = '경기 남양주시 별내면 광전리 269-2';
+  if(navigator.clipboard && window.isSecureContext) {
+    navigator.clipboard.writeText(addr).then(function(){
+      showCopyToast();
+    }).catch(function(){ fallbackCopy(addr); });
+  } else {
+    fallbackCopy(addr);
+  }
+}
+function fallbackCopy(text) {
+  var ta = document.createElement('textarea');
+  ta.value = text;
+  ta.style.position = 'fixed';
+  ta.style.opacity = '0';
+  document.body.appendChild(ta);
+  ta.focus(); ta.select();
+  try { document.execCommand('copy'); showCopyToast(); } catch(e) {}
+  document.body.removeChild(ta);
+}
+function showCopyToast() {
+  var t = document.createElement('div');
+  t.textContent = '📍 주소가 복사됐어요!';
+  t.style.cssText = 'position:fixed;bottom:80px;left:50%;transform:translateX(-50%);'
+    + 'background:#3B2A1A;color:#fff;padding:10px 20px;border-radius:20px;'
+    + 'font-size:13px;font-weight:600;z-index:9999;white-space:nowrap;'
+    + 'box-shadow:0 4px 12px rgba(0,0,0,.3);';
+  document.body.appendChild(t);
+  setTimeout(function(){ t.style.opacity='0'; t.style.transition='opacity .4s'; }, 1500);
+  setTimeout(function(){ document.body.removeChild(t); }, 2000);
 }
 
 // ── 주소 유틸 ──
@@ -2655,7 +2738,7 @@ loadProductsForOrder();
       택배비 1박스당 4,000원 별도
     </div>
     <div style="font-size:12px;color:#B07050;text-align:center;padding:3px 8px 6px;line-height:1.8;">
-      제주 및 도서 산간지역은 상품에서<br>제주산간 택배 추가해 주세요!
+      제주 및 도서 산간 지역 4,000원<br>택배비 추가<br>(기본 4,000원 + 추가 4,000원)
     </div>
     <button class="guide-ok-btn" onclick="closeGuideAndGo()">확인 · 주문 시작하기 🍐</button>
   </div>
