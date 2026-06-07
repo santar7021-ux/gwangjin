@@ -3003,6 +3003,7 @@ function renderSalesTab() {
   var prodMap     = {};
   var dateMap     = {};  // {date: {prods:{name:{boxes,prodAmt,delivAmt}}, jejuAmt:0}}
   var dateOrder   = [];
+  var dateRawMap  = {};  // {fmtedDate: timestamp} - 정렬용
   var seenGroups  = new Set(); // 제주비 중복 집계 방지
 
   paidOrders.forEach(function(o) {
@@ -3019,7 +3020,11 @@ function renderSalesTab() {
     // 날짜 계산
     var rawDate = (o.submittedAt||'').slice(0,16);
     var fmted   = rawDate ? fmtDate(rawDate, true) : '날짜 미상';
-    if(dateOrder.indexOf(fmted) < 0) dateOrder.push(fmted);
+    if(dateOrder.indexOf(fmted) < 0) {
+      dateOrder.push(fmted);
+      // 정렬을 위한 타임스탬프 저장
+      dateRawMap[fmted] = rawDate ? new Date(rawDate.replace(' ','T')+'Z').getTime() : 0;
+    }
     if(!dateMap[fmted]) dateMap[fmted] = {prods:{}, jejuAmt:0};
 
     totalBoxes += p.qty;
@@ -3115,10 +3120,17 @@ function renderSalesTab() {
   + '</tr>';
   h += '</tbody></table>';
 
-  // ── 날짜별 입금완료 내역 ──
+  // ── 날짜별 입금완료 내역 (최신 날짜 순) ──
   h += '<div class="sales-section-hd">📅 날짜별 입금완료 내역</div>';
 
-  dateOrder.slice().reverse().forEach(function(date) {
+  // fmtDate(KST) 문자열 → 정렬용 원본 날짜 매핑
+  var sortedDates = dateOrder.slice().sort(function(a, b) {
+    var ta = dateRawMap[a] || 0;
+    var tb = dateRawMap[b] || 0;
+    return tb - ta; // 최신 날짜 먼저
+  });
+
+  sortedDates.forEach(function(date) {
     var day      = dateMap[date];
     var dayProds = day.prods;
     var dayJeju  = day.jejuAmt || 0;
