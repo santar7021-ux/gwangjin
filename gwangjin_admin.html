@@ -1535,6 +1535,7 @@ function fetchOrders(manual) {
       });
 
       allOrders = data.orders;
+      rebuildJejuFeeMap(data.orders); // GS에서 jejuFee 재구성
       isFirstLoad = false;
 
       renderOrders();
@@ -3163,8 +3164,6 @@ function renderSalesTab() {
 // ══════════════════════════════
 // 제주·산간 택배비 관리
 // ══════════════════════════════
-// jejuFeeMap: {orderKey: 추가금액} - 기본 5000원
-var jejuFeeMap = {};
 var JEJU_FEE = 4000; // 제주·산간 추가 택배비
 
 function toggleJeju(grpKey) {
@@ -3183,6 +3182,50 @@ function toggleJeju(grpKey) {
   }
 }
 
+
+// 주문 목록에서 jejuFeeMap 재구성
+function rebuildJejuFeeMap(orders) {
+  var serverMap = {};
+  orders.forEach(function(o) {
+    if(o.jejuFee && o.jejuFee > 0) {
+      var key = (o.orderNo||'') + '::' + (o.orderIndex||'');
+      serverMap[key] = o.jejuFee;
+    }
+  });
+  // 서버 데이터 우선, localStorage로 보완
+  var localMap = loadJejuLocal();
+  // 서버에 있는 건 서버 값 사용
+  Object.keys(localMap).forEach(function(k) {
+    if(!serverMap[k] && localMap[k] > 0) serverMap[k] = localMap[k];
+  });
+  jejuFeeMap = serverMap;
+  saveJejuLocal();
+}
+
+
+function saveJejuToServer(grpKey, fee) {
+  var url = SCRIPT_URL
+    + '?action=savejeju'
+    + '&grpkey=' + encodeURIComponent(grpKey)
+    + '&fee=' + fee
+    + '&t=' + Date.now();
+  jsonp(url).then(function(d){
+    if(d.result!=='ok') console.error('savejeju 실패:', d.message);
+  }).catch(function(e){ console.error('savejeju 오류:', e); });
+}
+
+function saveJejuLocal() {
+  try { localStorage.setItem('gwangjin_jeju', JSON.stringify(jejuFeeMap)); } catch(e){}
+}
+
+function loadJejuLocal() {
+  try {
+    var raw = localStorage.getItem('gwangjin_jeju');
+    if(raw) return JSON.parse(raw);
+  } catch(e){}
+  return {};
+}
+
 // ── 자동 폴링 (30초마다) ──
 function startPolling() {
   fetchOrders(false);
@@ -3190,6 +3233,8 @@ function startPolling() {
 }
 
 // ── 초기화 ──
+// 초기 localStorage에서 jejuFeeMap 로드 (서버 로드 전 임시 복원)
+jejuFeeMap = loadJejuLocal();
 requestNotifyPermission();
 startPolling();
 </script>
