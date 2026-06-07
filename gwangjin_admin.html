@@ -1365,16 +1365,30 @@ if (window.speechSynthesis) {
 }
 // 사용자 터치 후 TTS 활성화 (모바일 보안 정책)
 var _ttsReady = false;
+var _ttsKeepAlive = null;
+
 function _initTTS() {
   if(_ttsReady) return;
   _ttsReady = true;
-  if(window.speechSynthesis) {
-    // 무음 발화로 TTS 엔진 활성화
-    var silent = new SpeechSynthesisUtterance(' ');
-    silent.volume = 0;
-    window.speechSynthesis.speak(silent);
-    console.log('TTS 활성화 완료');
-  }
+  if(!window.speechSynthesis) return;
+
+  // 무음 발화로 TTS 엔진 활성화
+  var silent = new SpeechSynthesisUtterance(' ');
+  silent.volume = 0;
+  silent.lang = 'ko-KR';
+  window.speechSynthesis.speak(silent);
+  console.log('TTS 활성화 완료');
+
+  // Android Chrome 버그 대응: 14초마다 무음 발화로 엔진 유지
+  // (Android Chrome은 일정 시간 비활성 시 TTS 엔진 슬립)
+  _ttsKeepAlive = setInterval(function() {
+    if(window.speechSynthesis && !window.speechSynthesis.speaking) {
+      var ping = new SpeechSynthesisUtterance(' ');
+      ping.volume = 0;
+      ping.lang = 'ko-KR';
+      window.speechSynthesis.speak(ping);
+    }
+  }, 14000);
 }
 document.addEventListener('click', _initTTS, {once: true});
 document.addEventListener('touchstart', _initTTS, {once: true});
@@ -1402,72 +1416,88 @@ function playAlert() {
 }
 
 // ── 음성 안내 (TTS) ──
+var _ttsRepeatTimer = null;
+
 function speakAlert(count) {
-  try {
-    if (!window.speechSynthesis) { console.log('TTS 미지원'); return; }
-    window.speechSynthesis.cancel();
-    var text = '새로운 주문이 ' + count + '건 들어왔습니다.';
+  if(!window.speechSynthesis) {
+    console.log('TTS 미지원 브라우저');
+    return;
+  }
 
-    function doSpeak() {
-      // Android Chrome: 기존 발화 취소 후 시작
-      window.speechSynthesis.cancel();
+  var text = '새로운 주문이 ' + count + '건 들어왔습니다.';
 
-      function _speak(repeatCount) {
-        var msg = new SpeechSynthesisUtterance(text);
-        msg.lang = 'ko-KR';
-        msg.rate = 0.85;
-        msg.pitch = 1.0;
-        msg.volume = 1.0;
+  // 이전 발화 완전 정리
+  clearTimeout(_ttsRepeatTimer);
+  window.speechSynthesis.cancel();
 
-        // 한국어 음성 찾기
-        var voices = window.speechSynthesis.getVoices();
-        var koVoice = voices.find(function(v){
-          return v.lang && (v.lang.indexOf('ko') === 0);
-        });
-        if(koVoice) msg.voice = koVoice;
+  var spokenCount = 0; // 총 2회 발화
 
-        msg.onstart = function(){ console.log('TTS 시작 (' + repeatCount + '회)'); };
-        msg.onerror = function(e){ console.log('TTS 오류:', e.error); };
+  function doUtter() {
+    // Android Chrome: pause→resume으로 엔진 깨우기
+    try {
+      window.speechSynthesis.pause();
+      window.speechSynthesis.resume();
+    } catch(e){}
 
-        // 2회 반복 (0→1→끝)
-        if(repeatCount < 1) {
-          msg.onend = function() {
-            setTimeout(function(){ _speak(repeatCount + 1); }, 400);
-          };
-        }
-        window.speechSynthesis.speak(msg);
-      }
+    var msg = new SpeechSynthesisUtterance(text);
+    msg.lang   = 'ko-KR';
+    msg.rate   = 0.88;
+    msg.pitch  = 1.0;
+    msg.volume = 1.0;
 
-      // 음성 목록이 로드된 후 발화
-      var voices = window.speechSynthesis.getVoices();
-      if(voices.length > 0) {
-        _speak(0);
-      } else {
-        window.speechSynthesis.onvoiceschanged = function(){
-          window.speechSynthesis.onvoiceschanged = null;
-          _speak(0);
-        };
-        setTimeout(function(){ _speak(0); }, 500);
+    // 한국어 음성 선택
+    var voices = window.speechSynthesis.getVoices();
+    var koVoice = null;
+    for(var i = 0; i < voices.length; i++) {
+      if(voices[i].lang && voices[i].lang.indexOf('ko') === 0) {
+        koVoice = voices[i];
+        break;
       }
     }
+    if(koVoice) msg.voice = koVoice;
 
-    // 음성 목록이 로드됐는지 확인 후 실행
-    setTimeout(function(){
-      var voices = window.speechSynthesis.getVoices();
-      if(voices.length > 0) {
-        doSpeak();
-      } else {
-        // 음성 목록 로드 대기
-        window.speechSynthesis.onvoiceschanged = function(){
-          doSpeak();
-          window.speechSynthesis.onvoiceschanged = null;
-        };
-        // 2초 후에도 안되면 그냥 시도
-        setTimeout(doSpeak, 2000);
+    msg.onstart = function(){ console.log('TTS 발화 시작 #' + (spokenCount+1)); };
+
+    msg.onend = function() {
+      spokenCount++;
+      console.log('TTS 발화 완료 #' + spokenCount);
+      if(spokenCount < 2) {
+        _ttsRepeatTimer = setTimeout(doUtter, 600);
       }
-    }, 500);
+    };
 
-  } catch(e) { console.log('TTS 오류:', e); }
+    msg.onerror = function(e) {
+      console.log('TTS 오류:', e.error, '/ 재시도 중...');
+      spokenCount++;
+      if(spokenCount < 2) {
+        _ttsRepeatTimer = setTimeout(doUtter, 800);
+      }
+    };
+
+    window.speechSynthesis.speak(msg);
+
+    // 10초 내 완료 안 되면 강제 종료 (무한 대기 방지)
+    setTimeout(function(){
+      if(window.speechSynthesis.speaking) {
+        window.speechSynthesis.cancel();
+      }
+    }, 10000);
+  }
+
+  // 음성 목록 로드 확인 후 발화
+  var voices = window.speechSynthesis.getVoices();
+  if(voices.length > 0) {
+    // 짧은 지연으로 cancel() 완전 처리 대기
+    setTimeout(doUtter, 100);
+  } else {
+    // 음성 목록 로드 대기 (onvoiceschanged)
+    var _vTimer = setTimeout(function(){ doUtter(); }, 1500);
+    window.speechSynthesis.onvoiceschanged = function() {
+      clearTimeout(_vTimer);
+      window.speechSynthesis.onvoiceschanged = null;
+      setTimeout(doUtter, 100);
+    };
+  }
 }
 
 // ── 브라우저 푸시 알림 ──
