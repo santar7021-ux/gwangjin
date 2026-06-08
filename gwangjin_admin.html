@@ -1841,7 +1841,7 @@ function renderOrders() {
         html += '<button class="paid-select-btn"'
           + ' data-rows="' + rowList.join(',') + '"'
           + ' data-sender="' + (first.senderName||'').replace(/"/g,'&quot;') + '"'
-          + ' onclick="togglePaidSelect(this)">'
+          + ' type="button">'
           + '<span class="chk-icon">✓</span>'
           + '<span class="btn-txt">메일 발송에 포함하기</span>'
         + '</button>';
@@ -1864,6 +1864,18 @@ function renderOrders() {
   });
 
   list.innerHTML = html;
+  // paid-select-btn: touchstart→click 이중 발화 방지
+  list.querySelectorAll('.paid-select-btn').forEach(function(btn){
+    var _touched = false;
+    btn.addEventListener('touchstart', function(){
+      _touched = true;
+      togglePaidSelect(this);
+    }, {passive: true});
+    btn.addEventListener('click', function(){
+      if(_touched){ _touched = false; return; } // touchstart 이미 처리됨
+      togglePaidSelect(this);
+    });
+  });
   // 제주·산간 버튼 이벤트 바인딩
   list.querySelectorAll('.btn-jeju').forEach(function(btn){
     btn.addEventListener('click', function(){
@@ -2848,18 +2860,28 @@ function markPaidByKey(btn) {
 }
 
 // 선택 토글 버튼 클릭
+var _paidToggleLock = false; // 모바일 다중 발화 방지
+
 function togglePaidSelect(btn) {
+  if(_paidToggleLock) return;
+  _paidToggleLock = true;
+  setTimeout(function(){ _paidToggleLock = false; }, 600);
+
   var rowKey = btn.getAttribute('data-rows') || '';
-  var isSelected = btn.classList.contains('selected');
+  // selectedPaidRows(Set)를 기준으로 상태 판단 (DOM 클래스는 보조)
+  var isSelected = selectedPaidRows.has(rowKey);
+
   if(isSelected) {
-    btn.classList.remove('selected');
     selectedPaidRows.delete(rowKey);
+    btn.classList.remove('selected');
+    var txtEl = btn.querySelector('.btn-txt');
+    if(txtEl) txtEl.textContent = '메일 발송에 포함하기';
   } else {
-    btn.classList.add('selected');
     selectedPaidRows.add(rowKey);
+    btn.classList.add('selected');
+    var txtEl = btn.querySelector('.btn-txt');
+    if(txtEl) txtEl.textContent = '✓ 발송에 포함됨';
   }
-  var txtEl = btn.querySelector('.btn-txt');
-  if(txtEl) txtEl.textContent = !isSelected ? '✓ 발송에 포함됨' : '메일 발송에 포함하기';
   updatePaidBar();
 }
 
