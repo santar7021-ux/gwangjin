@@ -1307,10 +1307,12 @@ var _jsonpId = 0;
 var allOrders        = [];
 var currentTab       = 'all';
 var searchQuery      = '';
-var selectedPaidRows = new Set(); // 입금완료 탭 선택 상태 (폴링 후에도 유지)
+var selectedPaidRows = new Set();
 var isFirstLoad      = true;
 var knownOrderNos    = new Set();
 var localProducts    = [];
+var jejuFeeMap       = {};   // {orderNo::orderIndex: fee}
+var JEJU_FEE         = 4000; // 제주·산간 추가 택배비
 
 function jsonp(url) {
   return new Promise(function(resolve, reject) {
@@ -3206,22 +3208,19 @@ function renderSalesTab() {
 // ══════════════════════════════
 // 제주·산간 택배비 관리
 // ══════════════════════════════
-var JEJU_FEE = 4000; // 제주·산간 추가 택배비
 
 function toggleJeju(grpKey) {
-  if(jejuFeeMap[grpKey]) {
-    // 추가된 상태 → 취소
+  var fee = jejuFeeMap[grpKey] ? 0 : JEJU_FEE;
+  if(fee === 0) {
     delete jejuFeeMap[grpKey];
-    renderOrders();
+    showToast('제주·산간 택배비가 취소됐어요.');
   } else {
-    // 추가 - 금액 입력받기
-    var input = prompt('제주·산간 추가 택배비를 입력하세요 (원)', JEJU_FEE);
-    if(input === null) return; // 취소
-    var fee = parseInt(input);
-    if(isNaN(fee) || fee <= 0) { showToast('올바른 금액을 입력해 주세요.'); return; }
     jejuFeeMap[grpKey] = fee;
-    renderOrders();
+    showToast('🏝 제주·산간 택배비 ' + fee.toLocaleString() + '원이 추가됐어요!');
   }
+  saveJejuToServer(grpKey, fee); // GS 시트에 저장 (영구 반영)
+  saveJejuLocal();               // localStorage 백업
+  renderOrders();
 }
 
 
@@ -3276,6 +3275,8 @@ function startPolling() {
 
 // ── 초기화 ──
 // 초기 localStorage에서 jejuFeeMap 로드 (서버 로드 전 임시 복원)
+jejuFeeMap = loadJejuLocal();
+// 초기 localStorage에서 jejuFeeMap 복원 (서버 로드 전 임시)
 jejuFeeMap = loadJejuLocal();
 requestNotifyPermission();
 startPolling();
