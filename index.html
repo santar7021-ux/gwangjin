@@ -1577,7 +1577,7 @@ function fmtDate(str, dateOnly) {
 }
 
 var PRICE_MAP = {};
-var DELIVERY = 4000;
+var DELIVERY  = 4000; // 박스당 택배비 (항상 정수)
 
 // 상품문자열 파싱 "신고 10과 2박스" → {name:'신고 10과', qty:2}
 function parseProduct(productStr) {
@@ -1589,8 +1589,15 @@ function parseProduct(productStr) {
 
 function rebuildPriceMap() {
   PRICE_MAP = {};
-  PRODUCT_LIST.forEach(function(p){ PRICE_MAP[p.name] = p.price; });
-  if(PRODUCT_LIST.length > 0) DELIVERY = PRODUCT_LIST[0].delivery || 4000;
+  PRODUCT_LIST.forEach(function(p){
+    // 소수점 오류 방지: 항상 정수로 변환
+    PRICE_MAP[p.name] = Math.round(parseInt(p.price) || 0);
+  });
+  // delivery 값도 항상 정수로 강제 변환 (GS에서 3999.xxx 등 소수점 오면 4000으로 보정)
+  if(PRODUCT_LIST.length > 0) {
+    var rawDelivery = parseInt(PRODUCT_LIST[0].delivery) || 4000;
+    DELIVERY = Math.round(rawDelivery / 1000) * 1000; // 1000원 단위로 반올림 (3999→4000)
+  }
 }
 rebuildPriceMap();
 
@@ -1600,9 +1607,17 @@ function loadProductsForOrder() {
     .then(function(data){
       if(data.result === 'ok' && data.products && data.products.length > 0) {
         // visible 필터 + stock > 0 필터
-        PRODUCT_LIST = data.products.filter(function(p){
-          return p.visible !== false && (p.stock === undefined || p.stock > 0);
-        });
+        PRODUCT_LIST = data.products
+          .filter(function(p){ return p.visible !== false && (p.stock === undefined || p.stock > 0); })
+          .map(function(p){
+            return {
+              name:     p.name     || '',
+              price:    Math.round(parseInt(p.price)    || 0),
+              delivery: Math.round(parseInt(p.delivery) || 4000),
+              stock:    parseInt(p.stock) >= 0 ? parseInt(p.stock) : 999,
+              visible:  p.visible !== false
+            };
+          });
         rebuildPriceMap(); // 단가 즉시 반영
         // 이미 열린 받는사람 드롭다운들 갱신
         document.querySelectorAll('select.prod-select').forEach(function(sel) {
@@ -2268,7 +2283,7 @@ function updateOrderSummary() {
         var unitPrice = PRICE_MAP[p.name] || 0;
         if(unitPrice <= 0) return;
         var prodAmt = unitPrice * p.qty;
-        var delivAmt = DELIVERY * p.qty;
+        var delivAmt = Math.round(DELIVERY) * p.qty;
         hasAnyProduct = true;
         totalProductAmt += prodAmt;
         totalBoxes += p.qty;
